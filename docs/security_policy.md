@@ -2,6 +2,7 @@
 
 **Projeto:** Web-Keyring (Gerenciador de Senhas Web)   
 **Controle de versão:** 1.0   
+**Autoria:** José Renato, Paloma e Rodrigo   
 **Data:** 15 Agosto de 2026   
 
 ---

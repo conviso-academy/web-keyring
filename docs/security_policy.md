@@ -1,8 +1,8 @@
 # Política de Segurança da Aplicação
 
-**Projeto:** Web-Keyring (Gerenciador de Senhas Web)
-**Controle de versão:** 1.0
-**Data:** 15 Agosto de 2026
+**Projeto:** Web-Keyring (Gerenciador de Senhas Web)   
+**Controle de versão:** 1.0   
+**Data:** 15 Agosto de 2026   
 
 ---
 

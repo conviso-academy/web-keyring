@@ -158,13 +158,9 @@ No caso do Web-Keyring, o usuário final terá uma senha-mestra que cumpra deter
 
 **8.6.6** Compartilhamento e revogação de acesso;
 
-**8.6.7** Alterações de privilégios;
+**8.6.7** Alterações de configurações de segurança;
 
-**8.6.8** Criação, alteração ou exclusão de usuários;
-
-**8.6.9** Alterações de configurações de segurança;
-
-**8.6.10** Eventos de bloqueio e desbloqueio de contas.
+**8.6.8** Eventos de bloqueio e desbloqueio de contas.
 
 **8.7** Os logs deverão possuir política de retenção definida, considerando requisitos operacionais, legais e de segurança.
 

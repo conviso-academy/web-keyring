@@ -48,14 +48,7 @@ flowchart TD
     %% Relacionamentos ORM -> DB
     ORM -- "TCP/SQL" --> DB
 
-    %% Estilização base
-    classDef client fill:#f0f4c3,stroke:#cddc39,stroke-width:2px;
-    classDef server fill:#bbdefb,stroke:#2196f3,stroke-width:2px;
-    classDef database fill:#ffcdd2,stroke:#f44336,stroke-width:2px;
-    
-    class SPA client;
-    class FastAPI server;
-    class DB database;
+    %% Estilização delegada ao tema nativo para garantir o contraste.
 ```
 
 ---
@@ -112,26 +105,20 @@ sequenceDiagram
 
     Browser->>API: GET /api/secrets/{id}/reveal<br>(Envia Cookie session_id)
     
-    rect rgb(240, 248, 255)
-        Note over API: Middleware de Autenticação
-        API->>DB: Consulta validade do session_id
-        DB-->>API: Sessão válida (Retorna user_id)
-    end
+    Note over API: Middleware de Autenticação
+    API->>DB: Consulta validade do session_id
+    DB-->>API: Sessão válida (Retorna user_id)
     
-    rect rgb(255, 245, 238)
-        Note over API: Validação e Descriptografia
-        API->>DB: Busca segredo {id}
-        DB-->>API: Retorna vault_id e encrypted_value
-        API->>DB: Valida se owner_id do vault == user_id
-        Note right of API: Checagem de Propriedade (Ownership)
-        API->>API: Descriptografa encrypted_value em RAM
-    end
+    Note over API: Validação e Descriptografia
+    API->>DB: Busca segredo {id}
+    DB-->>API: Retorna vault_id e encrypted_value
+    API->>DB: Valida se owner_id do vault == user_id
+    Note right of API: Checagem de Propriedade (Ownership)
+    API->>API: Descriptografa encrypted_value em RAM
     
-    rect rgb(240, 255, 240)
-        Note over API: Trilha de Auditoria
-        API->>DB: INSERT INTO audit_log (user_id, secret_id, ação='read')
-        DB-->>API: Ack
-    end
+    Note over API: Trilha de Auditoria
+    API->>DB: INSERT INTO audit_log (user_id, secret_id, ação='read')
+    DB-->>API: Ack
     
     API-->>Browser: HTTP 200 OK<br>Payload: { "value": "secret_em_texto_plano" }
 ```

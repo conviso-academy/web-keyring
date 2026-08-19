@@ -25,6 +25,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    command: ["./entrypoint.sh"]
     networks:
       - backend_net
       - frontend_net

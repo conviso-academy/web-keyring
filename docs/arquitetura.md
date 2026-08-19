@@ -90,7 +90,7 @@ A aplicação não utiliza JSON Web Tokens (JWT) armazenados no cliente.
 1. O usuário submete credenciais (e-mail e senha) para `/api/auth/login`.
 2. A API valida o *hash* da senha armazenado em `users`.
 3. A API gera um UUID insere um registro em `sessions`.
-4. A API retorna o response contendo um *cookie* `session_id`. 
+4. A API retorna o response contendo um *cookie* `session_id` com os atributos `HttpOnly`, `Secure` e `SameSite=Strict` (detalhados em 3.3). 
 
 ### 3.2. Fluxo de Revelação e Auditoria
 
@@ -126,3 +126,55 @@ sequenceDiagram
 **Mecanismos de Segurança Neste Fluxo:**
 - **Prevenção contra IDOR:** A etapa 5 impede que usuários validem requisições de leitura iterando sobre IDs de segredos aleatórios.
 - **Rastreabilidade Não-Repudiável:** A etapa 7 é síncrona; o segredo não é retornado caso a escrita no log de auditoria falhe.
+
+### 3.3. Atributos de Segurança do Cookie de Sessão (`HttpOnly`, `Secure`, `SameSite`)
+
+O uso dos atributos do cookie `session_id` consolida as diretrizes de gerenciamento de sessão da aplicação.
+
+Conforme a seção 6.2 da política de segurança, os cookies de sessão deverão utilizar, obrigatoriamente, os atributos `HttpOnly`, `Secure` e `SameSite`, conforme a necessidade da aplicação. No Web-Keyring a combinação aplicada é `HttpOnly`, `Secure` e `SameSite=Strict`.
+
+| Atributo | Valor | Efeito |
+|---|---|---|
+| `HttpOnly` | `true` | Impede o acesso ao cookie via JavaScript (`document.cookie`), mitigando roubo de sessão por XSS. |
+| `Secure` | `true` | O cookie só é transmitido sobre HTTPS/TLS, evitando exposição em tráfego não criptografado. |
+| `SameSite` | `Strict` | Restringe o envio do cookie a requisições de mesma origem (primeira parte), mitigando ataques de CSRF. |
+
+**Justificativa de ameaça:** a ausência de `HttpOnly` e `SameSite` configura superfície de ataque para **roubo de sessão** (falhas na gravação de cookies). Reforçando o controle, a política de segurança (seções 6.3 a 6.5) determina que:
+
+- O `session_id` **não** deve ser armazenado em `localStorage` ou `sessionStorage` (somente no cookie `HttpOnly`).
+- A sessão deve ter expiração absoluta e por inatividade, com prazo máximo de **6 horas**.
+- O identificador deve ser renovado após eventos relevantes de autenticação e invalidado no `logout` no servidor.
+
+---
+
+## 4. Integração Contínua: Pipeline CI/CD (GitHub Actions + Conviso Platform)
+
+A conexão do Web-Keyring com uma pipeline de CI/CD é realizada via **GitHub Actions**, integrada à **Conviso Platform** para varredura de segurança automatizada (Conviso AST) e aplicação de *Security Gate*. 
+
+```mermaid
+flowchart LR
+    subgraph GitHub["GitHub Actions"]
+        Trigger["Push / Pull Request"] --> Build["Build e Testes<br>(Vite, pytest, Docker)"]
+        Build --> SAST["SAST<br>(Análise estática)"]
+        SAST --> SCA["SCA<br>(Dependências)"]
+        SCA --> SecretScan["Secret Scanning"]
+        SecretScan --> Gate{"Conviso<br>Security Gate"}
+    end
+    Gate -- "Aprovado" --> Deploy["Deploy (Docker)"]
+    Gate -- "Vulnerabilidades críticas" --> Block["Bloqueio<br>(política 9.6)"]
+    SAST --> Platform[("Conviso Platform<br>Conviso AST")]
+    SCA --> Platform
+    SecretScan --> Platform
+```
+
+**Etapas da pipeline:**
+
+1. **Trigger:** push para branches de desenvolvimento ou abertura de *pull requests*.
+2. **Build e Testes:** compilação do frontend (Vite), execução dos testes da API (FastAPI/pytest) e build das imagens Docker.
+3. **SAST:** análise estática do código-fonte em busca de vulnerabilidades.
+4. **SCA:** varredura de bibliotecas e dependências vulneráveis.
+5. **Secret scanning:** detecção de segredos e credenciais acidentalmente commitados.
+6. **Conviso AST / Security Gate:** envio dos resultados para a Conviso Platform; o *gate* bloqueia o deploy na presença de vulnerabilidades críticas conhecidas (política 9.6).
+7. **Deploy:** liberado somente mediante aprovação do *Security Gate* e validação de políticas.
+
+**Conformidade com a política de segurança:** as etapas 3 a 6 atendem às seções 9.3 e 9.4 do `docs/security_policy.md`, que exigem que todo código seja submetido a mecanismos automatizados de análise de segurança (SAST, SCA e secret scanning) e que, após toda modificação significativa, o scan de vulnerabilidades seja documentado na Conviso Platform, com tratamento registrado das vulnerabilidades identificadas (classificação, responsável, prazo e situação).

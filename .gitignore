@@ -1,0 +1,5 @@
+.agents
+.gitignore
+skills-lock.json
+# Environment variables
+.env

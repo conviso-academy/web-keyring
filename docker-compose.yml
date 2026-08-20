@@ -13,6 +13,15 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    user: "70:70"
+    tmpfs:
+      - /tmp
+      - /var/run/postgresql
 
   api:
     build: 
@@ -31,15 +40,33 @@ services:
     networks:
       - backend_net
       - frontend_net
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    user: "1001:1001"
 
   frontend:
     build:
       context: .
     restart: unless-stopped
     ports:
-      - "5173:5173"
+      - "5173:8080"
     networks:
       - frontend_net
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+    user: "101:101"
 
 volumes:
   pgdata:

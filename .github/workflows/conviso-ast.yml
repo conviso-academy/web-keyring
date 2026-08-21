@@ -23,11 +23,23 @@ jobs:
       CONVISO_API_KEY: ${{ secrets.CONVISO_API_KEY }}
 
     steps:
+      # ---------------------------------------------------------
+      # 1. Checkout do repositório
+      # ---------------------------------------------------------
       - name: Checkout do repositorio
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
+      # ---------------------------------------------------------
+      # 2. Criação das regras do Security Gate
+      #
+      # A pipeline deve bloquear quando existir:
+      # - 1 ou mais vulnerabilidades Critical
+      # - 1 ou mais vulnerabilidades High
+      #
+      # Vulnerabilidades Medium e Low são permitidas.
+      # ---------------------------------------------------------
       - name: Criar regras do Security Gate
         run: |
           cat <<'EOF' > security-gate.yml
@@ -40,11 +52,38 @@ jobs:
                   maximum: 0
           EOF
 
+          echo "Arquivo security-gate.yml criado:"
+          cat security-gate.yml
+
+      # ---------------------------------------------------------
+      # 3. Execução do Conviso AST
+      #
+      # Company ID: 908
+      # Asset ID: 80146
+      #
+      # Os resultados encontrados são enviados para a
+      # Conviso Platform.
+      # ---------------------------------------------------------
       - name: Executar Conviso AST
         run: |
-          conviso ast run --vulnerability-auto-close
+          conviso ast run \
+            --vulnerability-auto-close \
+            --company-id 908 \
+            --asset-id 80146
 
+      # ---------------------------------------------------------
+      # 4. Security Gate
+      #
+      # Verifica as vulnerabilidades existentes no Asset.
+      #
+      # High > 0     -> pipeline bloqueada
+      # Critical > 0 -> pipeline bloqueada
+      #
+      # Medium/Low não bloqueiam.
+      # ---------------------------------------------------------
       - name: Executar Security Gate
         run: |
-          conviso vulnerability assert-security-rules \
+          cvs security-gate \
+            --asset-id 80146 \
+            --company-id 908 \
             --rules-file security-gate.yml

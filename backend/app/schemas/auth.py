@@ -44,11 +44,13 @@ class LoginRequest(BaseModel):
 
 class TOTPVerifyRequest(BaseModel):
     code: str = Field(pattern=r"^\d{6}$")
+    session_token: Optional[UUID] = None
     session_token: UUID
 
 
 class TOTPSetupVerifyRequest(BaseModel):
     code: str = Field(pattern=r"^\d{6}$")
+    session_token: Optional[UUID] = None
 
 
 class RegisterResponse(BaseModel):

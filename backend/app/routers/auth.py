@@ -48,6 +48,7 @@ def _clear_session_cookie(response: Response):
 async def register(
     request: Request,
     payload: RegisterRequest,
+    response: Response,
     db: AsyncSession = Depends(get_db)
 ):
     ip = get_client_ip(request)
@@ -60,6 +61,7 @@ async def register(
 async def login(
     request: Request,
     payload: LoginRequest,
+    response: Response,
     db: AsyncSession = Depends(get_db)
 ):
     ip = get_client_ip(request)
@@ -76,6 +78,7 @@ async def login(
 async def setup_2fa(
     request: Request,
     payload: dict,
+    response: Response,
     db: AsyncSession = Depends(get_db)
 ):
     session_token = request.headers.get("X-Session-Token") or payload.get("session_token")

@@ -76,11 +76,13 @@ async def login_step1(email: str, password: str, ip: str, db: AsyncSession) -> d
         password_service.verify_password_dummy()
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
         
-    if user.locked_until and user.locked_until > datetime.now(timezone.utc):
-        raise HTTPException(status_code=401, detail="Credenciais inválidas")
+    is_locked = user.locked_until and user.locked_until > datetime.now(timezone.utc)
         
     is_valid = password_service.verify_password(password, user.password_hash)
     
+    if is_locked:
+        raise HTTPException(status_code=401, detail="Credenciais inválidas")
+        
     if not is_valid:
         user.failed_attempts += 1
         if user.failed_attempts >= settings.MAX_FAILED_ATTEMPTS:

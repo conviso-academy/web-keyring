@@ -1,4 +1,4 @@
-name: Conviso AST Security Scan
+name: Conviso Security Scan
 
 on:
   push:
@@ -9,16 +9,17 @@ on:
 jobs:
   conviso-ast:
     runs-on: ubuntu-latest
+    container:
+      image: convisoappsec/convisoast:latest
+    env:
+      CONVISO_API_KEY: ${{ secrets.CONVISO_API_KEY }}
+
     steps:
-      - name: Checkout do código
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Executar Conviso AST (SAST / SCA / Secrets)
-        uses: convisoappsec/action-ast@v1
-        with:
-          api_key: ${{ secrets.CONVISO_API_KEY }}
+      - name: Run Conviso AST Scan
+        run: conviso ast run
 
-      - name: Executar Security Gate
-        uses: convisoappsec/action-security-gate@v1
-        with:
-          api_key: ${{ secrets.CONVISO_API_KEY }}
+      - name: Run Security Gate
+        run: conviso security-gate run

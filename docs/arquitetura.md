@@ -22,7 +22,7 @@ flowchart TD
         subgraph FastAPI ["Servidor API REST (FastAPI)"]
             AuthMid["Middleware de Autenticação<br>(Validação de session_id)"]
             RouterAuth["Rotas de Auth<br>(/api/auth/*)"]
-            RouterVaults["Rotas de Cofres e Segredos<br>(/api/vaults/*, /api/secrets/*)"]
+            RouterVaults["Rotas de Cofres e Segredos<br>(/api/vaults/*)"]
             RouterAudit["Rotas de Auditoria<br>(/api/audit-log)"]
             ORM["Camada de Dados<br>(SQLAlchemy)"]
         end
@@ -70,13 +70,14 @@ Construído em Python 3.12 com o framework FastAPI. Atua como o único ponto de 
 ### 2.3. Banco de Dados
 Servidor PostgreSQL operando em container Docker. A rede deste container não expõe portas para o host, sendo acessível estritamente pelo container da API.
 
-O modelo relacional suporta seis tabelas principais:
+O modelo relacional suporta sete tabelas principais:
 - `users`: Credenciais (`password_hash` via Argon2id, além de `failed_attempts` e `locked_until` para controle de bloqueio temporário).
 - `sessions`: Controle de sessões ativas (expiração absoluta de 6h).
 - `totp_devices`: Dispositivos de autenticação multifator (seed TOTP criptografado com AES-256-GCM e backup codes).
-- `vaults`: Agrupamento lógico de segredos (pertencentes a um `owner_id`).
-- `secrets`: Armazenamento de itens. O campo `encrypted_value` (`bytea`) guarda o payload sensível protegido por criptografia simétrica.
-- `audit_log`: Tabela imutável (append-only) que registra ações cruciais de segredos e eventos de autenticação (`create`, `read`, `update`, `delete`, `login`, `login_failed`, `logout`, `register`, `2fa_setup`, `2fa_verify_failed`) mapeadas ao ID do usuário requisitante.
+- `vaults`: Agrupamento lógico de segredos (pertencentes a um `owner_id`). Utiliza *soft-delete* (`deleted_at`).
+- `secrets`: Armazenamento de itens. O campo `encrypted_value` (`bytea`) guarda o payload sensível protegido por criptografia simétrica. Utiliza *soft-delete* (`deleted_at`).
+- `secret_versions`: Histórico de versionamento dos valores dos segredos (com limite de 10 versões), armazenando os payloads criptografados anteriores para *rollback* seguro.
+- `audit_log`: Tabela imutável (append-only) que registra ações cruciais de cofres, segredos e eventos de autenticação (`create`, `read`, `update`, `delete`, `login`, `login_failed`, `logout`, `register`, `2fa_setup`, `2fa_verify_failed`, `vault_create`, `vault_update`, `vault_delete`) mapeadas ao ID do usuário requisitante e vinculadas ao `secret_id` e/ou `vault_id`.
 
 ---
 
@@ -106,21 +107,21 @@ sequenceDiagram
     participant API as Backend (FastAPI)
     participant DB as Banco de Dados (PostgreSQL)
 
-    Browser->>API: GET /api/secrets/{id}/reveal<br>(Envia Cookie session_id)
+    Browser->>API: GET /api/vaults/{vault_id}/secrets/{secret_id}/reveal<br>(Envia Cookie session_id)
     
     Note over API: Middleware de Autenticação
     API->>DB: Consulta validade do session_id
     DB-->>API: Sessão válida (Retorna user_id)
     
     Note over API: Validação e Descriptografia
-    API->>DB: Busca segredo {id}
+    API->>DB: Busca segredo {secret_id}
     DB-->>API: Retorna vault_id e encrypted_value
-    API->>DB: Valida se owner_id do vault == user_id
-    Note right of API: Checagem de Propriedade (Ownership)
+    API->>API: Valida se vault.owner_id == user_id E<br>secret.vault_id == {vault_id} da URL
+    Note right of API: Dupla Checagem de Propriedade (Ownership)
     API->>API: Descriptografa encrypted_value em RAM
     
     Note over API: Trilha de Auditoria
-    API->>DB: INSERT INTO audit_log (user_id, secret_id, ação='read')
+    API->>DB: INSERT INTO audit_log (user_id, vault_id, secret_id, ação='read')
     DB-->>API: Ack
     
     API-->>Browser: HTTP 200 OK<br>Payload: { "value": "secret_em_texto_plano" }

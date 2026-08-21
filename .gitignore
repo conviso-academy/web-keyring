@@ -1,5 +1,8 @@
 .agents
 .gitignore
 skills-lock.json
+node_modules
+dist
 # Environment variables
 .env
+

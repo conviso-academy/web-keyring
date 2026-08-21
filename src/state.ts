@@ -4,9 +4,16 @@ export interface AppState {
   // Auth
   currentUser: User | null;
   isAuthenticated: boolean;
+  
+  // Auth - Fluxo 2FA
+  tempSessionToken: string | null;
+  twoFaSetupData: {
+    provisioningUri: string;
+    backupCodes: string[];
+  } | null;
 
   // Navigation
-  currentView: 'login' | 'register' | 'dashboard' | 'audit';
+  currentView: 'login' | 'register' | 'dashboard' | 'audit' | '2fa_setup' | '2fa_verify';
   
   // Dashboard
   vaults: Vault[];
@@ -32,6 +39,8 @@ export interface AppState {
 export const state: AppState = {
   currentUser: null,
   isAuthenticated: false,
+  tempSessionToken: null,
+  twoFaSetupData: null,
   currentView: 'login',
   vaults: [],
   selectedVault: null,

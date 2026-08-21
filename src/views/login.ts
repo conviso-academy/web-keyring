@@ -56,10 +56,18 @@ export function render(): void {
     btnSubmit.disabled = true;
     
     try {
-      const { user } = await login(email, password);
-      state.isAuthenticated = true;
-      state.currentUser = user;
-      navigate('dashboard');
+      const response = await login(email, password);
+      if (response.requires_2fa_setup) {
+        state.tempSessionToken = response.session_token;
+        navigate('2fa_setup');
+      } else if (response.requires_2fa) {
+        state.tempSessionToken = response.session_token;
+        navigate('2fa_verify');
+      } else {
+        state.isAuthenticated = true;
+        if (response.user) state.currentUser = response.user;
+        navigate('dashboard');
+      }
     } catch (error: any) {
       showToast(error.message || 'Erro ao fazer login', 'error');
     } finally {

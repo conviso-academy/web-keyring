@@ -1,4 +1,4 @@
-name: Conviso Security Scan
+name: Conviso AST & Security Gate
 
 on:
   push:
@@ -15,11 +15,25 @@ jobs:
       CONVISO_API_KEY: ${{ secrets.CONVISO_API_KEY }}
 
     steps:
-      - name: Checkout repository
+      - name: Checkout do repositorio
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Run Conviso AST Scan
+      - name: Criar arquivo de regras do Security Gate
+        run: |
+          cat <<EOF > security-gate.yml
+          rules:
+            - from: any
+              severity: critical
+              maximum: 0
+            - from: any
+              severity: high
+              maximum: 0
+          EOF
+
+      - name: Executar Conviso AST Scan
         run: conviso ast run
 
-      - name: Run Security Gate
-        run: conviso security-gate run
+      - name: Executar Security Gate
+        run: conviso vulnerability assert-security-rules --rules-file 'security-gate.yml'

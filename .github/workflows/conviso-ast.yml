@@ -1,39 +1,50 @@
 name: Conviso AST & Security Gate
 
 on:
+  workflow_dispatch:
+
   push:
-    branches: [ "main", "master" ]
+    branches:
+      - main
+
   pull_request:
-    branches: [ "main", "master" ]
+    branches:
+      - main
 
 jobs:
-  conviso-ast:
+  conviso-security:
+    name: Conviso AST & Security Gate
     runs-on: ubuntu-latest
+
     container:
       image: convisoappsec/convisoast:latest
+
     env:
       CONVISO_API_KEY: ${{ secrets.CONVISO_API_KEY }}
 
     steps:
       - name: Checkout do repositorio
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Criar arquivo de regras do Security Gate
+      - name: Criar regras do Security Gate
         run: |
-          cat <<EOF > security-gate.yml
+          cat <<'EOF' > security-gate.yml
           rules:
             - from: any
-              severity: critical
-              maximum: 0
-            - from: any
-              severity: high
-              maximum: 0
+              severity:
+                critical:
+                  maximum: 0
+                high:
+                  maximum: 0
           EOF
 
-      - name: Executar Conviso AST Scan
-        run: conviso ast run
+      - name: Executar Conviso AST
+        run: |
+          conviso ast run --vulnerability-auto-close
 
       - name: Executar Security Gate
-        run: conviso vulnerability assert-security-rules --rules-file 'security-gate.yml'
+        run: |
+          conviso vulnerability assert-security-rules \
+            --rules-file security-gate.yml

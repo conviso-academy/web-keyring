@@ -20,7 +20,10 @@ class AuditLog(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("users.id"), nullable=False
     )
-    action: Mapped[AuditAction] = mapped_column(Enum(AuditAction, native_enum=True), nullable=False)
+    action: Mapped[AuditAction] = mapped_column(
+        Enum(AuditAction, native_enum=True, values_callable=lambda obj: [e.value for e in obj]), 
+        nullable=False
+    )
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

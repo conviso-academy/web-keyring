@@ -11,13 +11,24 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         
-        csp = (
-            "default-src 'self'; "
-            "script-src 'self'; "
-            "style-src 'self' 'unsafe-inline'; "
-            "img-src 'self' data:; "
-            "connect-src 'self'"
-        )
+        # O Swagger UI (docs) precisa carregar scripts externos do CDN para renderizar a interface
+        path = request.url.path
+        if path.startswith("/docs") or path.startswith("/redoc") or path.startswith("/openapi.json"):
+            csp = (
+                "default-src 'self'; "
+                "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                "img-src 'self' data: fastapi.tiangolo.com; "
+                "connect-src 'self'"
+            )
+        else:
+            csp = (
+                "default-src 'self'; "
+                "script-src 'self'; "
+                "style-src 'self' 'unsafe-inline'; "
+                "img-src 'self' data:; "
+                "connect-src 'self'"
+            )
         response.headers["Content-Security-Policy"] = csp
         
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"

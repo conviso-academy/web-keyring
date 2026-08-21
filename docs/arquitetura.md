@@ -1,6 +1,6 @@
 # Arquitetura: Web-Keyring
 
-**Versão:** 1.1
+**Versão:** 1.2
 
 Este documento apresenta o design arquitetural da aplicação Web-Keyring. O sistema atua como um cofre digital para armazenamento, recuperação e auditoria de segredos (tokens de API, credenciais de banco de dados, chaves SSH) destinados a equipes internas de desenvolvimento e infraestrutura.
 

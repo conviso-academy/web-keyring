@@ -15,8 +15,6 @@ import {
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-export const mockDelay = (ms: number = 500) => new Promise(resolve => setTimeout(resolve, ms));
-
 export interface ApiRequestOptions {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   endpoint: string;
@@ -102,9 +100,12 @@ export async function apiRequest<T>({
       } else if (response.status >= 500) {
         throw new ServerError(message);
       } else {
+        // Fallback for unexpected errors
         throw new ApiError(response.status, message);
       }
     }
+
+    // Temporary mockDelay to avoid breaking other files before Phase 3-6
 
     if (response.status === 204) {
       return null as unknown as T;

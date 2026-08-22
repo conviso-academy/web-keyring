@@ -22,6 +22,7 @@ router = APIRouter(prefix="/api/vaults", tags=["Vaults"])
 @limiter.limit(settings.RATE_LIMIT_CRUD)
 async def list_vaults_route(
     request: Request,
+    response: Response,
     page: int = Query(1, ge=1),
     page_size: int = Query(settings.DEFAULT_PAGE_SIZE, ge=1, le=settings.MAX_PAGE_SIZE),
     db: AsyncSession = Depends(get_db),
@@ -34,6 +35,7 @@ async def list_vaults_route(
 @limiter.limit(settings.RATE_LIMIT_CRUD)
 async def create_vault_route(
     request: Request,
+    response: Response,
     data: VaultCreateRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -46,6 +48,7 @@ async def create_vault_route(
 @limiter.limit(settings.RATE_LIMIT_CRUD)
 async def get_vault_route(
     request: Request,
+    response: Response,
     vault_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -57,6 +60,7 @@ async def get_vault_route(
 @limiter.limit(settings.RATE_LIMIT_CRUD)
 async def update_vault_route(
     request: Request,
+    response: Response,
     vault_id: uuid.UUID,
     data: VaultUpdateRequest,
     db: AsyncSession = Depends(get_db),
@@ -70,6 +74,7 @@ async def update_vault_route(
 @limiter.limit(settings.RATE_LIMIT_CRUD)
 async def delete_vault_route(
     request: Request,
+    response: Response,
     vault_id: uuid.UUID,
     confirm: bool = False,
     db: AsyncSession = Depends(get_db),
@@ -85,6 +90,7 @@ async def delete_vault_route(
 @limiter.limit(settings.RATE_LIMIT_CRUD)
 async def list_secrets_route(
     request: Request,
+    response: Response,
     vault_id: uuid.UUID,
     page: int = Query(1, ge=1),
     page_size: int = Query(settings.DEFAULT_PAGE_SIZE, ge=1, le=settings.MAX_PAGE_SIZE),
@@ -98,6 +104,7 @@ async def list_secrets_route(
 @limiter.limit(settings.RATE_LIMIT_CRUD)
 async def create_secret_route(
     request: Request,
+    response: Response,
     vault_id: uuid.UUID,
     data: SecretCreateRequest,
     db: AsyncSession = Depends(get_db),
@@ -111,6 +118,7 @@ async def create_secret_route(
 @limiter.limit(settings.RATE_LIMIT_CRUD)
 async def get_secret_route(
     request: Request,
+    response: Response,
     vault_id: uuid.UUID,
     secret_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
@@ -123,6 +131,7 @@ async def get_secret_route(
 @limiter.limit(settings.RATE_LIMIT_CRUD)
 async def update_secret_route(
     request: Request,
+    response: Response,
     vault_id: uuid.UUID,
     secret_id: uuid.UUID,
     data: SecretUpdateRequest,
@@ -137,6 +146,7 @@ async def update_secret_route(
 @limiter.limit(settings.RATE_LIMIT_CRUD)
 async def delete_secret_route(
     request: Request,
+    response: Response,
     vault_id: uuid.UUID,
     secret_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
@@ -188,6 +198,7 @@ async def reveal_secret_route(
 @limiter.limit(settings.RATE_LIMIT_CRUD)
 async def list_secret_versions_route(
     request: Request,
+    response: Response,
     vault_id: uuid.UUID,
     secret_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),

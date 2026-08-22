@@ -1,7 +1,7 @@
 import math
 from datetime import date
 from typing import Optional
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_
 from sqlalchemy.orm import joinedload
@@ -17,12 +17,13 @@ from app.schemas.audit import AuditEntryResponse
 from app.schemas.common import PaginatedResponse
 from app.models.enums import AuditAction
 
-router = APIRouter(prefix="/api/audit", tags=["Audit Log"])
+router = APIRouter(prefix="/api/audit-log", tags=["Audit Log"])
 
 @router.get("", response_model=PaginatedResponse[AuditEntryResponse])
 @limiter.limit(settings.RATE_LIMIT_CRUD)
 async def list_audit_logs_route(
     request: Request,
+    response: Response,
     vault_id: Optional[str] = None,
     action: Optional[AuditAction] = None,
     date_start: Optional[date] = None,
@@ -41,9 +42,9 @@ async def list_audit_logs_route(
     if action:
         conditions.append(AuditLog.action == action)
     if date_start:
-        conditions.append(func.date(AuditLog.created_at) >= date_start)
+        conditions.append(func.date(AuditLog.timestamp) >= date_start)
     if date_end:
-        conditions.append(func.date(AuditLog.created_at) <= date_end)
+        conditions.append(func.date(AuditLog.timestamp) <= date_end)
         
     where_clause = and_(*conditions)
     
@@ -56,7 +57,7 @@ async def list_audit_logs_route(
             joinedload(AuditLog.secret)
         )
         .where(where_clause)
-        .order_by(AuditLog.created_at.desc())
+        .order_by(AuditLog.timestamp.desc())
         .limit(page_size)
         .offset(offset)
     )
@@ -79,7 +80,7 @@ async def list_audit_logs_route(
             action=log.action.value,
             secret_name=log.secret.name if log.secret else None,
             vault_name=log.vault.name if log.vault else None,
-            timestamp=log.created_at,
+            timestamp=log.timestamp,
             ip_address=log.ip_address
         ))
         

@@ -7,7 +7,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.core.config import settings
 from app.core.limiter import limiter
 from app.middleware.security_headers import SecurityHeadersMiddleware
-from app.routers import auth
+from app.routers import auth, vaults, audit
 
 app = FastAPI(title="Web-Keyring API")
 
@@ -39,6 +39,8 @@ app.add_middleware(SlowAPIMiddleware)
 
 # 5. Incluir router de auth
 app.include_router(auth.router)
+app.include_router(vaults.router)
+app.include_router(audit.router)
 
 # 6. Manter health check GET /
 @app.get("/")

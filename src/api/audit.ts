@@ -1,35 +1,29 @@
-import { mockDelay } from './client';
-import { mockAuditLog } from './mock-data';
-import type { AuditEntry } from '../types';
+import { apiRequest } from './client';
+import type { AuditEntry, PaginatedResponse, AuditAction } from '../types';
 
 export interface AuditFilters {
   vaultId?: string | null;
+  action?: AuditAction | null;
   dateStart?: string | null;
   dateEnd?: string | null;
   page: number;
   pageSize: number;
 }
 
-export async function getAuditLog(filters: AuditFilters): Promise<{ items: AuditEntry[], total: number, page: number }> {
-  await mockDelay();
+export async function getAuditLog(filters: AuditFilters): Promise<PaginatedResponse<AuditEntry>> {
+  const queryParams: Record<string, string | number> = {
+    page: filters.page,
+    page_size: filters.pageSize
+  };
   
-  let filtered = [...mockAuditLog];
-  
-  // No real implementation we'd filter by vaultId by looking up vault names or ids.
-  // Here we simplify for the mock if needed.
-  
-  if (filters.dateStart) {
-    filtered = filtered.filter(a => a.timestamp >= filters.dateStart!);
-  }
-  
-  if (filters.dateEnd) {
-    const endOfDay = filters.dateEnd + 'T23:59:59Z';
-    filtered = filtered.filter(a => a.timestamp <= endOfDay);
-  }
-  
-  const total = filtered.length;
-  const start = (filters.page - 1) * filters.pageSize;
-  const items = filtered.slice(start, start + filters.pageSize);
-  
-  return { items, total, page: filters.page };
+  if (filters.vaultId) queryParams.vault_id = filters.vaultId;
+  if (filters.action) queryParams.action = filters.action;
+  if (filters.dateStart) queryParams.date_start = filters.dateStart;
+  if (filters.dateEnd) queryParams.date_end = filters.dateEnd;
+
+  return apiRequest<PaginatedResponse<AuditEntry>>({
+    method: 'GET',
+    endpoint: '/api/audit-log',
+    queryParams
+  });
 }

@@ -5,12 +5,21 @@ export function renderAuditRow(entry: AuditEntry): string {
   const date = new Date(entry.timestamp);
   const formattedDate = `${date.toLocaleDateString('pt-BR')} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
   
+  let targetHtml = '-';
+  if (entry.secret_name && entry.vault_name) {
+    targetHtml = `${entry.secret_name} <span style="color: var(--color-text-muted); font-size: 0.8em;">em ${entry.vault_name}</span>`;
+  } else if (entry.vault_name) {
+    targetHtml = `${entry.vault_name} <span style="color: var(--color-text-muted); font-size: 0.8em;">(Cofre)</span>`;
+  } else if (entry.secret_name) {
+    targetHtml = `${entry.secret_name}`; // Fallback
+  }
+
   return `
     <tr class="table-row">
       <td class="table-cell" style="color: var(--color-text-secondary); white-space: nowrap;">${formattedDate}</td>
       <td class="table-cell" style="font-weight: 500;">${entry.user_email}</td>
       <td class="table-cell">${renderActionBadge(entry.action)}</td>
-      <td class="table-cell">${entry.secret_name} <span style="color: var(--color-text-muted); font-size: 0.8em;">em ${entry.vault_name}</span></td>
+      <td class="table-cell">${targetHtml}</td>
     </tr>
   `;
 }

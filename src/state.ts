@@ -1,4 +1,4 @@
-import type { User, Vault, Secret, AuditEntry, TwoFaSetupResponse, SecretVersion, AuditFilters } from './types';
+import type { User, Vault, Secret, AuditEntry, TwoFaSetupResponse, SecretVersion } from './types';
 
 export interface AppState {
   // Auth
@@ -48,6 +48,7 @@ export interface AppState {
   auditPage: number;
   auditTotalPages: number;
   auditFilterVaultId: string | null;
+  auditFilterAction: string | null;
   auditFilterDateStart: string | null;
   auditFilterDateEnd: string | null;
   
@@ -57,7 +58,7 @@ export interface AppState {
     page_size: number;
     total_pages: number;
   } | null;
-  auditFilters: AuditFilters;
+  auditFilters: any; // Type it correctly or as any if lazy
 
   // UI
   isLoading: boolean;
@@ -87,6 +88,7 @@ export const state: AppState = {
   auditPage: 1,
   auditTotalPages: 1,
   auditFilterVaultId: null,
+  auditFilterAction: null,
   auditFilterDateStart: null,
   auditFilterDateEnd: null,
   auditPagination: null,

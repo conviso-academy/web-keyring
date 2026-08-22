@@ -25,9 +25,13 @@ export async function renderSecretsView(container: HTMLElement, page: number = 1
       total_pages: response.total_pages
     };
   } catch (e) {
-    container.innerHTML = renderEmptyState('alertTriangle', 'Erro ao carregar segredos.', 'Tentar Novamente', () => {
-      import('../views/dashboard').then(({ render }) => render());
-    });
+    container.innerHTML = renderEmptyState('alertTriangle', 'Erro ao carregar segredos.', 'Tentar Novamente');
+    const retryBtn = container.querySelector('#empty-state-btn');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', () => {
+        import('../views/dashboard').then(({ render }) => render());
+      });
+    }
     return;
   }
 
@@ -41,9 +45,7 @@ export async function renderSecretsView(container: HTMLElement, page: number = 1
   `;
 
   if (state.secrets.length === 0) {
-    html += renderEmptyState('keyRound', 'Este cofre está vazio.', 'Adicionar segredo', () => {
-      showCreateSecretModal(container);
-    });
+    html += renderEmptyState('keyRound', 'Este cofre está vazio.', 'Adicionar segredo');
   } else {
     const rows = state.secrets.map(renderSecretRow).join('');
     html += `
@@ -80,6 +82,13 @@ export async function renderSecretsView(container: HTMLElement, page: number = 1
   container.querySelector('#btn-new-secret')?.addEventListener('click', () => {
     showCreateSecretModal(container);
   });
+
+  const emptyStateBtn = container.querySelector('#empty-state-btn');
+  if (emptyStateBtn) {
+    emptyStateBtn.addEventListener('click', () => {
+      showCreateSecretModal(container);
+    });
+  }
 
   bindSecretEvents(container);
 }

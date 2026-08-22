@@ -22,9 +22,9 @@ export function showCreateSecretModal(container: HTMLElement) {
           <div class="input-group">
             <label class="label" for="secret-type">Tipo</label>
             <select class="input" id="secret-type" required>
-              <option value="password">Senha</option>
-              <option value="note">Nota Segura</option>
-              <option value="api_key">Chave de API</option>
+              <option value="api_token">Token de API</option>
+              <option value="db_credential">Credencial de Banco</option>
+              <option value="ssh_key">Chave SSH</option>
             </select>
           </div>
           <div class="input-group">

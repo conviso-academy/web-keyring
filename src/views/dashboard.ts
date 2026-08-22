@@ -60,7 +60,9 @@ async function renderVaultsView(container: HTMLElement, fetch = true, page = 1) 
         total_pages: paginatedVaults.total_pages
       };
     } catch (e: any) {
-      container.innerHTML = renderEmptyState('alertTriangle', 'Erro ao carregar cofres.', 'Tentar Novamente', () => render());
+      container.innerHTML = renderEmptyState('alertTriangle', 'Erro ao carregar cofres.', 'Tentar Novamente');
+      const retryBtn = container.querySelector('#empty-state-btn');
+      if (retryBtn) retryBtn.addEventListener('click', () => render());
       return;
     }
   }
@@ -83,9 +85,7 @@ async function renderVaultsView(container: HTMLElement, fetch = true, page = 1) 
     if (query) {
       html += renderEmptyState('search', 'Nenhum cofre encontrado para sua busca.');
     } else {
-      html += renderEmptyState('lock', 'Você ainda não tem nenhum cofre.', 'Criar seu primeiro cofre', () => {
-        showEditVaultModal();
-      });
+      html += renderEmptyState('lock', 'Você ainda não tem nenhum cofre.', 'Criar seu primeiro cofre');
     }
   } else {
     html += renderVaultTable(filtered);
@@ -97,7 +97,14 @@ async function renderVaultsView(container: HTMLElement, fetch = true, page = 1) 
   }
 
   container.innerHTML = html;
-  
+
+  const emptyStateBtn = container.querySelector('#empty-state-btn');
+  if (emptyStateBtn) {
+    emptyStateBtn.addEventListener('click', () => {
+      showEditVaultModal();
+    });
+  }
+
   // Bind events
   container.querySelectorAll('.table-row').forEach(row => {
     row.addEventListener('click', (e) => {

@@ -11,7 +11,8 @@ async def log_event(
     user_id: uuid.UUID,
     action: AuditAction,
     ip_address: str,
-    secret_id: Optional[uuid.UUID] = None
+    secret_id: Optional[uuid.UUID] = None,
+    vault_id: Optional[uuid.UUID] = None
 ) -> AuditLog:
     """Log an audit event to the database."""
     
@@ -22,7 +23,8 @@ async def log_event(
         user_id=user_id,
         action=action,
         ip_address=ip_address,
-        secret_id=secret_id
+        secret_id=secret_id,
+        vault_id=vault_id
     )
     db.add(audit_log)
     await db.commit()

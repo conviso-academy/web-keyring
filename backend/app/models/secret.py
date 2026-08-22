@@ -29,7 +29,14 @@ class Secret(Base):
     updated_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), onupdate=func.now(), nullable=True
     )
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     vault: Mapped["Vault"] = relationship(back_populates="secrets")
     creator: Mapped["User"] = relationship()
     audit_entries: Mapped[list["AuditLog"]] = relationship(back_populates="secret")
+    versions: Mapped[list["SecretVersion"]] = relationship(
+        back_populates="secret", cascade="all, delete-orphan",
+        order_by="SecretVersion.version_number.desc()"
+    )

@@ -13,7 +13,7 @@ from app.models.session import Session
 from app.models.enums import AuditAction
 from app.core.config import settings
 
-from app.services import password_service, session_service, totp_service, audit_service
+from app.services import password_service, session_service, totp_service, audit_service, crypto_service
 
 _pending_2fa_tokens: Dict[str, Dict[str, Any]] = {}
 _token_lock = asyncio.Lock()
@@ -174,8 +174,8 @@ async def verify_2fa_setup(session_token: str, code: str, ip: str, db: AsyncSess
         await db.delete(old_device)
         await db.commit()
         
-    encrypted_secret = totp_service.encrypt_totp_secret(temp_secret)
-    encrypted_backups = totp_service.encrypt_backup_codes(temp_backup_codes)
+    encrypted_secret = crypto_service.encrypt_string(temp_secret)
+    encrypted_backups = crypto_service.encrypt_json(temp_backup_codes)
     
     device = TOTPDevice(
         user_id=user_id,
@@ -212,7 +212,7 @@ async def complete_2fa_verify(session_token: str, code: str, ip: str, db: AsyncS
     if not totp_device or not totp_device.is_verified:
         raise HTTPException(status_code=400, detail="2FA não configurado")
         
-    secret = totp_service.decrypt_totp_secret(totp_device.encrypted_secret)
+    secret = crypto_service.decrypt_string(totp_device.encrypted_secret)
     
     is_valid = False
     

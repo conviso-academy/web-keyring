@@ -5,6 +5,7 @@ from .session import Session
 from .totp_device import TOTPDevice
 from .vault import Vault
 from .secret import Secret
+from .secret_version import SecretVersion
 from .audit_log import AuditLog
 
 __all__ = [
@@ -16,5 +17,6 @@ __all__ = [
     "TOTPDevice",
     "Vault",
     "Secret",
+    "SecretVersion",
     "AuditLog",
 ]

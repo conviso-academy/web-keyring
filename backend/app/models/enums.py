@@ -16,3 +16,6 @@ class AuditAction(enum.Enum):
     register = "register"
     two_fa_setup = "2fa_setup"
     two_fa_verify_failed = "2fa_verify_failed"
+    vault_create = "vault_create"
+    vault_update = "vault_update"
+    vault_delete = "vault_delete"

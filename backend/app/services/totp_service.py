@@ -1,12 +1,9 @@
-import os
-import json
 import secrets
 import pyotp
 from typing import List, Optional
 
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-
 from app.core.config import settings
+from app.services import crypto_service
 
 def generate_totp_secret() -> str:
     """Gera um segredo TOTP aleatório de 32 caracteres base32 para o usuário."""
@@ -29,49 +26,6 @@ def generate_backup_codes(count: int = 10) -> List[str]:
     
     return [secrets.token_hex(4) for _ in range(count)]
 
-def _get_aesgcm() -> AESGCM:
-    key_bytes = settings.ENCRYPTION_KEY.encode("utf-8")
-    
-    if len(key_bytes) != 32:
-        
-        key_bytes = key_bytes.ljust(32, b'\0')[:32]
-    return AESGCM(key_bytes)
-
-def encrypt_totp_secret(secret: str) -> bytes:
-    """Criptografa o segredo TOTP usando AES-256-GCM."""
-    aesgcm = _get_aesgcm()
-    nonce = os.urandom(12)
-    ciphertext = aesgcm.encrypt(nonce, secret.encode("utf-8"), None)
-    return nonce + ciphertext
-
-def decrypt_totp_secret(encrypted: bytes) -> str:
-    """Descriptografa o segredo TOTP usando AES-256-GCM."""
-    if len(encrypted) < 12 + 16:
-        raise ValueError("Invalid encrypted data length")
-    nonce = encrypted[:12]
-    ciphertext = encrypted[12:]
-    aesgcm = _get_aesgcm()
-    plaintext = aesgcm.decrypt(nonce, ciphertext, None)
-    return plaintext.decode("utf-8")
-
-def encrypt_backup_codes(codes: List[str]) -> bytes:
-    """Serializa os códigos de backup para JSON e os criptografa com AES-256-GCM."""
-    aesgcm = _get_aesgcm()
-    nonce = os.urandom(12)
-    data = json.dumps(codes).encode("utf-8")
-    ciphertext = aesgcm.encrypt(nonce, data, None)
-    return nonce + ciphertext
-
-def decrypt_backup_codes(encrypted: bytes) -> List[str]:
-    """Descriptografa os códigos de backup criptografados com AES-256-GCM e os desserializa do JSON."""
-    if len(encrypted) < 12 + 16:
-        raise ValueError("Invalid encrypted backup codes length")
-    nonce = encrypted[:12]
-    ciphertext = encrypted[12:]
-    aesgcm = _get_aesgcm()
-    plaintext = aesgcm.decrypt(nonce, ciphertext, None)
-    return json.loads(plaintext.decode("utf-8"))
-
 def consume_backup_code(encrypted: bytes, code: str) -> Optional[bytes]:
     """
     Verifica se um código está nos códigos de backup.
@@ -79,12 +33,12 @@ def consume_backup_code(encrypted: bytes, code: str) -> Optional[bytes]:
     Se não estiver, retorna None.
     """
     try:
-        codes = decrypt_backup_codes(encrypted)
+        codes = crypto_service.decrypt_json(encrypted)
     except Exception:
         return None
         
     if code in codes:
         codes.remove(code)
-        return encrypt_backup_codes(codes)
+        return crypto_service.encrypt_json(codes)
     
     return None

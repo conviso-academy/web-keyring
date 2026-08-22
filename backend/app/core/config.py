@@ -1,3 +1,4 @@
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
@@ -33,6 +34,21 @@ class Settings(BaseSettings):
     
     # Token Temporário de 2FA
     TWO_FA_TOKEN_TTL_MINUTES: int = 5
+
+    # Paginação
+    DEFAULT_PAGE_SIZE: int = Field(default=20, ge=1, le=100)
+    MAX_PAGE_SIZE: int = Field(default=100, ge=10, le=500)
+
+    # Limites de Tamanho
+    MAX_SECRET_VALUE_SIZE: int = Field(default=65536)
+    MAX_SECRET_NAME_LENGTH: int = Field(default=255)
+    MAX_VAULT_NAME_LENGTH: int = Field(default=255)
+
+    # Versionamento
+    MAX_SECRET_VERSIONS: int = Field(default=10, ge=1, le=50)
+
+    # Rate Limiting CRUD
+    RATE_LIMIT_CRUD: str = Field(default="60/minute")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

@@ -1,6 +1,8 @@
+from datetime import datetime
+from typing import Optional
 import uuid
 
-from sqlalchemy import ForeignKey, String, Uuid, func
+from sqlalchemy import DateTime, ForeignKey, String, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -15,6 +17,9 @@ class Vault(Base):
         Uuid, ForeignKey("users.id"), nullable=False, index=True
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     owner: Mapped["User"] = relationship(back_populates="vaults")
     secrets: Mapped[list["Secret"]] = relationship(

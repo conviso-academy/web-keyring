@@ -17,6 +17,9 @@ class AuditLog(Base):
     secret_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         Uuid, ForeignKey("secrets.id", ondelete="SET NULL"), nullable=True, index=True
     )
+    vault_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        Uuid, ForeignKey("vaults.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     user_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("users.id"), nullable=False
     )
@@ -31,7 +34,9 @@ class AuditLog(Base):
 
     user: Mapped["User"] = relationship()
     secret: Mapped[Optional["Secret"]] = relationship(back_populates="audit_entries")
+    vault: Mapped[Optional["Vault"]] = relationship()
 
     __table_args__ = (
         Index("ix_audit_log_user_id_timestamp", "user_id", "timestamp"),
     )
+

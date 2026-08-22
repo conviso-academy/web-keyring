@@ -16,8 +16,6 @@ import {
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-export const mockDelay = (ms: number = 500) => new Promise(resolve => setTimeout(resolve, ms));
-
 export interface ApiRequestOptions {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   endpoint: string;

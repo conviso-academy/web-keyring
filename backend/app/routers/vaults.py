@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Request, Response, Query, HTTPException, status
+from fastapi.responses import JSONResponse
 import uuid
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -81,7 +82,23 @@ async def delete_vault_route(
     current_user: User = Depends(get_current_user)
 ):
     ip_address = get_client_ip(request)
-    await vault_service.delete_vault(db, current_user.id, vault_id, ip_address, confirm)
+    deleted, secrets_count = await vault_service.delete_vault(db, current_user.id, vault_id, ip_address, confirm)
+
+    if not deleted:
+        if secrets_count is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Vault não encontrado"
+            )
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={
+                "detail": f"Este vault contém {secrets_count} secret(s). Adicione ?confirm=true para confirmar a deleção.",
+                "secrets_count": secrets_count
+            }
+        )
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 # --- Secrets ---

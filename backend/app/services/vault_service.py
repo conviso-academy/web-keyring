@@ -196,43 +196,37 @@ async def delete_vault(
     vault_id: uuid.UUID,
     ip_address: str,
     confirm: bool = False
-):
+) -> tuple[bool, Optional[int]]:
     stmt = select(Vault).where(
         Vault.id == vault_id,
         Vault.deleted_at.is_(None)
     )
     vault = await db.scalar(stmt)
-    
+
     if not vault or vault.owner_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Vault não encontrado"
-        )
-        
+        return (False, None)
+
     secret_count_stmt = select(func.count()).select_from(Secret).where(
         Secret.vault_id == vault.id,
         Secret.deleted_at.is_(None)
     )
-    secrets_count = await db.scalar(secret_count_stmt)
-    
-    if (secrets_count or 0) > 0 and not confirm:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Este vault contém {secrets_count} secret(s). Adicione ?confirm=true para confirmar a deleção."
-        )
-        
+    secrets_count = await db.scalar(secret_count_stmt) or 0
+
+    if secrets_count > 0 and not confirm:
+        return (False, secrets_count)
+
     vault.deleted_at = func.now()
-    
-    if (secrets_count or 0) > 0:
+
+    if secrets_count > 0:
         update_secrets_stmt = (
             update(Secret)
             .where(Secret.vault_id == vault.id, Secret.deleted_at.is_(None))
             .values(deleted_at=func.now())
         )
         await db.execute(update_secrets_stmt)
-        
+
     await db.commit()
-    
+
     await log_event(
         db=db,
         user_id=user_id,
@@ -240,3 +234,5 @@ async def delete_vault(
         ip_address=ip_address,
         vault_id=vault.id
     )
+
+    return (True, secrets_count)

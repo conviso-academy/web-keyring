@@ -194,14 +194,16 @@ async def reveal_secret_route(
     return secret_reveal_resp
 
 
-@router.get("/{vault_id}/secrets/{secret_id}/versions", response_model=list[SecretVersionResponse])
+@router.get("/{vault_id}/secrets/{secret_id}/versions", response_model=PaginatedResponse[SecretVersionResponse])
 @limiter.limit(settings.RATE_LIMIT_CRUD)
 async def list_secret_versions_route(
     request: Request,
     response: Response,
     vault_id: uuid.UUID,
     secret_id: uuid.UUID,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(settings.DEFAULT_PAGE_SIZE, ge=1, le=settings.MAX_PAGE_SIZE),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    return await secret_service.list_secret_versions(db, current_user.id, vault_id, secret_id)
+    return await secret_service.list_secret_versions(db, current_user.id, vault_id, secret_id, page, page_size)

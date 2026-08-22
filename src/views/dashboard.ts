@@ -145,7 +145,8 @@ async function renderVaultsView(container: HTMLElement, fetch = true, page = 1) 
           } catch (err: any) {
             if (err instanceof ConflictError || err.name === 'ConflictError') {
               // Show another confirmation dialog for recursive delete
-              showConfirmDialog('Este cofre contém segredos. Deseja excluir tudo?', async () => {
+              const countSuffix = typeof err.secretsCount === 'number' ? ` Ele contém ${err.secretsCount} segredo(s).` : '';
+              showConfirmDialog(`Este cofre contém segredos.${countSuffix} Deseja excluir tudo?`, async () => {
                 try {
                   await deleteVault(vault.id, true);
                   showToast('Cofre e segredos excluídos com sucesso.', 'success');

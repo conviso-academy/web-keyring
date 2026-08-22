@@ -24,10 +24,6 @@ export function showEditSecretModal(container: HTMLElement, secret: Secret) {
             <textarea class="input" id="edit-secret-value" rows="4" required></textarea>
             <div id="edit-size-warning" style="color: var(--color-danger); font-size: 0.875rem; margin-top: 4px; display: none;">O valor excede 64KB.</div>
           </div>
-          <div class="input-group">
-            <label class="label" for="edit-secret-tags">Tags (separadas por vírgula)</label>
-            <input class="input" type="text" id="edit-secret-tags" />
-          </div>
           <div class="modal-actions" style="margin-top: var(--space-md);">
             <button type="button" class="btn btn--secondary" id="btn-cancel-edit">Cancelar</button>
             <button type="submit" class="btn btn--primary" id="btn-submit-edit">Salvar</button>
@@ -61,8 +57,6 @@ export function showEditSecretModal(container: HTMLElement, secret: Secret) {
     if (!state.selectedVault) return;
     
     const value = valueInput.value;
-    const tagsInput = (modal.querySelector('#edit-secret-tags') as HTMLInputElement).value;
-    const tags = tagsInput.split(',').map(t => t.trim()).filter(Boolean);
 
     if (new Blob([value]).size > 65536) {
       showToast('O valor do segredo excede 64KB.', 'error');
@@ -75,8 +69,7 @@ export function showEditSecretModal(container: HTMLElement, secret: Secret) {
 
     try {
       await updateSecret(state.selectedVault.id, secret.id, {
-        value,
-        tags
+        value
       });
       showToast('Segredo atualizado com sucesso.', 'success');
       close();

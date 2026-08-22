@@ -48,7 +48,7 @@ export async function getSecrets(vault_id: string, page: number = 1, page_size: 
   });
 }
 
-export async function createSecret(vault_id: string, request: SecretCreateRequest & { tags?: string[] }): Promise<Secret> {
+export async function createSecret(vault_id: string, request: SecretCreateRequest): Promise<Secret> {
   return apiRequest<Secret>({
     method: 'POST',
     endpoint: `/api/vaults/${vault_id}/secrets`,
@@ -63,7 +63,7 @@ export async function getSecret(vault_id: string, secret_id: string): Promise<Se
   });
 }
 
-export async function updateSecret(vault_id: string, secret_id: string, request: SecretUpdateRequest & { tags?: string[] }): Promise<Secret> {
+export async function updateSecret(vault_id: string, secret_id: string, request: SecretUpdateRequest): Promise<Secret> {
   return apiRequest<Secret>({
     method: 'PUT',
     endpoint: `/api/vaults/${vault_id}/secrets/${secret_id}`,
@@ -78,17 +78,22 @@ export async function deleteSecret(vault_id: string, secret_id: string): Promise
   });
 }
 
-export async function revealSecret(vault_id: string, secret_id: string, version?: number): Promise<{ value: string }> {
+export async function revealSecret(vault_id: string, secret_id: string): Promise<{ value: string }> {
   return apiRequest<{ value: string }>({
     method: 'GET',
-    endpoint: `/api/vaults/${vault_id}/secrets/${secret_id}/reveal`,
-    queryParams: version !== undefined ? { version } : undefined
+    endpoint: `/api/vaults/${vault_id}/secrets/${secret_id}/reveal`
   });
 }
 
-export async function getSecretVersions(vault_id: string, secret_id: string): Promise<SecretVersion[]> {
-  return apiRequest<SecretVersion[]>({
+export async function getSecretVersions(
+  vault_id: string,
+  secret_id: string,
+  page: number = 1,
+  page_size: number = 20
+): Promise<PaginatedResponse<SecretVersion>> {
+  return apiRequest<PaginatedResponse<SecretVersion>>({
     method: 'GET',
-    endpoint: `/api/vaults/${vault_id}/secrets/${secret_id}/versions`
+    endpoint: `/api/vaults/${vault_id}/secrets/${secret_id}/versions`,
+    queryParams: { page, page_size }
   });
 }

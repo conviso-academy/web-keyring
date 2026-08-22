@@ -10,7 +10,8 @@ import {
   ValidationError,
   RateLimitError,
   ServerError,
-  TimeoutError
+  TimeoutError,
+  type ValidationErrorItem
 } from './errors';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
@@ -77,10 +78,22 @@ export async function apiRequest<T>({
       try {
         errorData = await response.json();
       } catch (e) {
-        errorData = { message: response.statusText || 'Unknown error occurred' };
+        errorData = {};
       }
 
-      const message = errorData.message || errorData.error || `HTTP Error ${response.status}`;
+      const rawDetail = errorData?.detail;
+      let message: string;
+      if (typeof rawDetail === 'string') {
+        message = rawDetail;
+      } else if (Array.isArray(rawDetail)) {
+        message =
+          rawDetail
+            .map((item: any) => item?.msg)
+            .filter(Boolean)
+            .join('; ') || `HTTP Error ${response.status}`;
+      } else {
+        message = errorData?.message || errorData?.error || response.statusText || `HTTP Error ${response.status}`;
+      }
 
       if (response.status === 401) {
         // Não redirecionar nem limpar estado se for uma rota de autenticação (login, 2fa, etc)
@@ -96,12 +109,23 @@ export async function apiRequest<T>({
           showToast('Sessão expirada ou não autorizada. Faça login novamente.', 'error');
         }
         throw new AuthenticationError(message);
+      } else if (response.status === 422) {
+        const errors: ValidationErrorItem[] = Array.isArray(rawDetail)
+          ? rawDetail.map((item: any) => ({
+              loc: Array.isArray(item?.loc) ? item.loc : [],
+              msg: item?.msg ?? '',
+              type: item?.type ?? ''
+            }))
+          : [];
+        throw new ValidationError(message, errors);
       } else if (response.status === 400) {
         throw new ValidationError(message);
       } else if (response.status === 404) {
         throw new NotFoundError(message);
       } else if (response.status === 409) {
-        throw new ConflictError(message);
+        const secretsCount =
+          typeof errorData?.secrets_count === 'number' ? errorData.secrets_count : undefined;
+        throw new ConflictError(message, secretsCount);
       } else if (response.status === 429) {
         throw new RateLimitError(message);
       } else if (response.status >= 500) {

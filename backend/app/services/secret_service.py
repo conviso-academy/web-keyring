@@ -274,21 +274,37 @@ async def list_secret_versions(
     db: AsyncSession,
     user_id: uuid.UUID,
     vault_id: uuid.UUID,
-    secret_id: uuid.UUID
-) -> list[SecretVersionResponse]:
+    secret_id: uuid.UUID,
+    page: int,
+    page_size: int
+) -> PaginatedResponse[SecretVersionResponse]:
     secret = await _validate_vault_and_secret(db, user_id, vault_id, secret_id)
-    
+
+    offset = (page - 1) * page_size
     stmt = select(SecretVersion).options(joinedload(SecretVersion.creator)).where(
         SecretVersion.secret_id == secret.id
-    ).order_by(SecretVersion.version_number.desc())
-    
+    ).order_by(SecretVersion.version_number.desc()).limit(page_size).offset(offset)
+
     result = await db.execute(stmt)
     versions = result.scalars().all()
-    
-    return [
+
+    count_stmt = select(func.count()).select_from(SecretVersion).where(
+        SecretVersion.secret_id == secret.id
+    )
+    total = await db.scalar(count_stmt)
+
+    items = [
         SecretVersionResponse(
             version_number=v.version_number,
             created_by=v.creator.email,
             created_at=v.created_at
         ) for v in versions
     ]
+
+    return PaginatedResponse(
+        items=items,
+        total=total or 0,
+        page=page,
+        page_size=page_size,
+        total_pages=math.ceil((total or 0) / page_size) if total else 0
+    )

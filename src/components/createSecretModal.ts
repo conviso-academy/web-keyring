@@ -32,10 +32,6 @@ export function showCreateSecretModal(container: HTMLElement) {
             <textarea class="input" id="secret-value" rows="4" required></textarea>
             <div id="secret-size-warning" style="color: var(--color-danger); font-size: 0.875rem; margin-top: 4px; display: none;">O valor excede 64KB.</div>
           </div>
-          <div class="input-group">
-            <label class="label" for="secret-tags">Tags (separadas por vírgula)</label>
-            <input class="input" type="text" id="secret-tags" />
-          </div>
           <div class="modal-actions" style="margin-top: var(--space-md);">
             <button type="button" class="btn btn--secondary" id="btn-cancel-secret">Cancelar</button>
             <button type="submit" class="btn btn--primary" id="btn-submit-secret">Salvar</button>
@@ -71,8 +67,6 @@ export function showCreateSecretModal(container: HTMLElement) {
     const name = (modal.querySelector('#secret-name') as HTMLInputElement).value.trim();
     const type = (modal.querySelector('#secret-type') as HTMLSelectElement).value as SecretType;
     const value = valueInput.value;
-    const tagsInput = (modal.querySelector('#secret-tags') as HTMLInputElement).value;
-    const tags = tagsInput.split(',').map(t => t.trim()).filter(Boolean);
 
     if (new Blob([value]).size > 65536) {
       showToast('O valor do segredo excede 64KB.', 'error');
@@ -87,8 +81,7 @@ export function showCreateSecretModal(container: HTMLElement) {
       await createSecret(state.selectedVault.id, {
         name,
         type,
-        value,
-        tags
+        value
       });
       showToast('Segredo criado com sucesso.', 'success');
       close();

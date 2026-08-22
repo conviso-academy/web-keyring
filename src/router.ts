@@ -23,6 +23,11 @@ export function navigate(view: ViewName): void {
     return;
   }
 
+  // O dashboard sempre abre no estado padrão (lista "Seus Cofres")
+  if (view === 'dashboard') {
+    state.selectedVault = null;
+  }
+
   state.currentView = view;
   renderCurrentView();
 }

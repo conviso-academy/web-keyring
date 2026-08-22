@@ -14,10 +14,6 @@ export function renderSidebar(): HTMLElement {
     </div>
     <nav class="sidebar-nav">
       <a class="sidebar-item ${state.currentView === 'dashboard' ? 'sidebar-item--active' : ''}" data-view="dashboard">
-        ${icon('layoutDashboard').outerHTML}
-        Início
-      </a>
-      <a class="sidebar-item ${state.currentView === 'dashboard' ? 'sidebar-item--active' : ''}" data-view="dashboard">
         ${icon('lock').outerHTML}
         Cofres
       </a>

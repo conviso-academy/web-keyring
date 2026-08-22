@@ -20,6 +20,9 @@ export function renderSecretRow(secret: Secret): string {
         <button class="btn btn--ghost btn--sm btn--icon action-edit" data-id="${secret.id}" title="Editar">
           ${icon('pencil').outerHTML}
         </button>
+        <button class="btn btn--ghost btn--sm btn--icon action-versions" data-id="${secret.id}" title="Versões">
+          ${icon('scrollText').outerHTML}
+        </button>
         <button class="btn btn--ghost btn--sm btn--icon action-delete" data-id="${secret.id}" title="Deletar">
           ${icon('trash').outerHTML}
         </button>

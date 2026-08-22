@@ -1,19 +1,29 @@
 import { state } from '../state';
-import { getSecrets, revealSecret } from '../api/vaults';
+import { getSecrets, revealSecret, deleteSecret } from '../api/vaults';
 import { renderSecretRow, renderSecretExpansion } from './secretCard';
 import { renderEmptyState } from './emptyState';
 import { renderSkeleton } from './spinner';
 import { showToast } from './toast';
 import { showConfirmDialog } from './confirmDialog';
 import { icon, setIcon } from '../icons';
+import { renderPagination } from './pagination';
+import { showCreateSecretModal } from './createSecretModal';
+import { showEditSecretModal } from './editSecretModal';
+import { showSecretVersionsModal } from './secretVersions';
 
-export async function renderSecretsView(container: HTMLElement) {
+export async function renderSecretsView(container: HTMLElement, page: number = 1) {
   const vault = state.selectedVault!;
   container.innerHTML = renderSkeleton();
   
   try {
-    const secrets = await getSecrets(vault.id);
-    state.secrets = secrets;
+    const response = await getSecrets(vault.id, page, 10);
+    state.secrets = response.items;
+    state.secretsPagination = {
+      total: response.total,
+      page: response.page,
+      page_size: response.page_size,
+      total_pages: response.total_pages
+    };
   } catch (e) {
     container.innerHTML = renderEmptyState('alertTriangle', 'Erro ao carregar segredos.', 'Tentar Novamente', () => {
       import('../views/dashboard').then(({ render }) => render());
@@ -31,7 +41,9 @@ export async function renderSecretsView(container: HTMLElement) {
   `;
 
   if (state.secrets.length === 0) {
-    html += renderEmptyState('keyRound', 'Este cofre está vazio.', 'Adicionar segredo');
+    html += renderEmptyState('keyRound', 'Este cofre está vazio.', 'Adicionar segredo', () => {
+      showCreateSecretModal(container);
+    });
   } else {
     const rows = state.secrets.map(renderSecretRow).join('');
     html += `
@@ -51,14 +63,30 @@ export async function renderSecretsView(container: HTMLElement) {
           </tbody>
         </table>
       </div>
+      <div id="secrets-pagination" style="margin-top: var(--space-md);"></div>
     `;
   }
 
   container.innerHTML = html;
+  
+  if (state.secrets.length > 0 && state.secretsPagination) {
+    const pagContainer = container.querySelector('#secrets-pagination') as HTMLElement;
+    pagContainer.innerHTML = renderPagination(
+      state.secretsPagination.page,
+      state.secretsPagination.total_pages
+    );
+  }
+
+  container.querySelector('#btn-new-secret')?.addEventListener('click', () => {
+    showCreateSecretModal(container);
+  });
+
   bindSecretEvents(container);
 }
 
 function bindSecretEvents(container: HTMLElement) {
+  const vault = state.selectedVault!;
+  
   // Handle reveal
   container.querySelectorAll('.action-reveal').forEach(btn => {
     btn.addEventListener('click', async (e) => {
@@ -68,18 +96,16 @@ function bindSecretEvents(container: HTMLElement) {
       const tr = (e.currentTarget as HTMLElement).closest('tr');
       if (!tr) return;
 
-      // If already expanded, just close it
       if (state.expandedSecretId === id) {
         state.expandedSecretId = null;
         state.revealedSecretValue = null;
-        renderSecretsView(container);
+        renderSecretsView(container, state.secretsPagination?.page || 1);
         return;
       }
 
       state.expandedSecretId = id;
-      state.revealedSecretValue = null; // Reset
+      state.revealedSecretValue = null;
       
-      // Remove qualquer linhas de expansão existentes
       container.querySelectorAll('.secret-expansion-row').forEach(el => el.remove());
       container.querySelectorAll('.table-row-expanded').forEach(el => el.classList.remove('table-row-expanded'));
       
@@ -98,7 +124,7 @@ function bindSecretEvents(container: HTMLElement) {
       }
 
       try {
-        const { value } = await revealSecret(id);
+        const { value } = await revealSecret(vault.id, id);
         state.revealedSecretValue = value;
         expansionRow.outerHTML = renderSecretExpansion(id, value, false);
         
@@ -123,6 +149,31 @@ function bindSecretEvents(container: HTMLElement) {
         showToast('Erro ao revelar segredo', 'error');
         expansionRow.remove();
         tr.classList.remove('table-row-expanded');
+        if (iconSpan) {
+          setIcon(iconSpan, 'eye');
+        }
+      }
+    });
+  });
+
+  // Editar
+  container.querySelectorAll('.action-edit').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
+      const secret = state.secrets.find(s => s.id === id);
+      if (secret) {
+        showEditSecretModal(container, secret);
+      }
+    });
+  });
+
+  // Versões
+  container.querySelectorAll('.action-versions').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
+      const secret = state.secrets.find(s => s.id === id);
+      if (secret) {
+        showSecretVersionsModal(vault.id, secret);
       }
     });
   });
@@ -133,12 +184,35 @@ function bindSecretEvents(container: HTMLElement) {
       const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
       const secret = state.secrets.find(s => s.id === id);
       if (secret) {
-        showConfirmDialog(`Tem certeza que deseja excluir o segredo "${secret.name}"?`, () => {
-          state.secrets = state.secrets.filter(s => s.id !== id);
-          showToast('Segredo excluído com sucesso.', 'success');
-          renderSecretsView(container);
+        showConfirmDialog(`Tem certeza que deseja excluir o segredo "${secret.name}"?`, async () => {
+          try {
+            await deleteSecret(vault.id, secret.id);
+            showToast('Segredo excluído com sucesso.', 'success');
+            renderSecretsView(container, state.secretsPagination?.page || 1);
+          } catch (err: any) {
+            showToast(err.message || 'Erro ao excluir segredo.', 'error');
+          }
         });
       }
     });
   });
+
+  const prevBtn = container.querySelector('.pagination-prev');
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      if (state.secretsPagination && state.secretsPagination.page > 1) {
+        renderSecretsView(container, state.secretsPagination.page - 1);
+      }
+    });
+  }
+  
+  const nextBtn = container.querySelector('.pagination-next');
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      if (state.secretsPagination && state.secretsPagination.page < state.secretsPagination.total_pages) {
+        renderSecretsView(container, state.secretsPagination.page + 1);
+      }
+    });
+  }
 }
+

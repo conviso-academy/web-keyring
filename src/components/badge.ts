@@ -3,7 +3,7 @@ import type { SecretType, AuditAction } from '../types';
 
 export function renderSecretTypeBadge(type: SecretType): string {
   let label = 'API Token';
-  let iconName: 'key' | 'database' | 'terminal' = 'key';
+  let iconName: 'key' | 'database' | 'terminal' | 'scrollText' | 'lock' = 'key';
   
   if (type === 'db_credential') {
     label = 'DB Credential';
@@ -11,6 +11,15 @@ export function renderSecretTypeBadge(type: SecretType): string {
   } else if (type === 'ssh_key') {
     label = 'SSH Key';
     iconName = 'terminal';
+  } else if (type === 'password') {
+    label = 'Senha';
+    iconName = 'lock';
+  } else if (type === 'note') {
+    label = 'Nota Segura';
+    iconName = 'scrollText';
+  } else if (type === 'api_key') {
+    label = 'Chave de API';
+    iconName = 'key';
   }
   
   return `

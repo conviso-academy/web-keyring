@@ -1,6 +1,6 @@
 // ─── Enums e Tipos Base ─────────────────────────────────────────
 
-export type SecretType = 'api_token' | 'db_credential' | 'ssh_key';
+export type SecretType = 'password' | 'note' | 'api_key' | 'api_token' | 'db_credential' | 'ssh_key';
 
 export type AuditAction =
   | 'create' | 'read' | 'update' | 'delete'        // Secrets

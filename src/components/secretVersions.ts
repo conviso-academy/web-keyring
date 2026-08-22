@@ -1,28 +1,19 @@
 import { getSecretVersions } from '../api/vaults';
+import { openModal, escapeHtml } from './modal';
 import type { Secret } from '../types';
 
 export async function showSecretVersionsModal(vault_id: string, secret: Secret) {
-  const modal = document.createElement('div');
-  modal.className = 'modal-backdrop';
-  modal.innerHTML = `
-    <div class="modal" style="max-width: 600px;">
-      <div class="modal-header">
-        <h2 class="modal-title">Versões: ${secret.name}</h2>
-        <button class="modal-close" id="btn-close-versions-modal">&times;</button>
+  const { body } = openModal({
+    title: 'Histórico de Versões',
+    subtitle: `Segredo "${secret.name}"`,
+    iconName: 'scrollText',
+    size: 'lg',
+    bodyHTML: `
+      <div style="display: flex; justify-content: center; padding: var(--space-xl);">
+        <div class="btn--loading" style="width: 24px; height: 24px; color: var(--color-accent);"></div>
       </div>
-      <div class="modal-body" id="versions-modal-body">
-        <div style="display: flex; justify-content: center; padding: var(--space-xl);">
-          <div class="btn--loading" style="width: 24px; height: 24px; color: var(--color-accent);"></div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-  const close = () => modal.remove();
-  modal.querySelector('#btn-close-versions-modal')?.addEventListener('click', close);
-
-  const body = modal.querySelector('#versions-modal-body') as HTMLElement;
+    `,
+  });
 
   try {
     const data = await getSecretVersions(vault_id, secret.id);
@@ -33,7 +24,7 @@ export async function showSecretVersionsModal(vault_id: string, secret: Secret) 
     }
 
     let html = `
-      <table class="table" style="margin-top: 0;">
+      <table class="table">
         <thead>
           <tr>
             <th>Versão</th>
@@ -53,7 +44,7 @@ export async function showSecretVersionsModal(vault_id: string, secret: Secret) 
         <tr>
           <td>v${v.version_number}</td>
           <td>${date}</td>
-          <td style="color: var(--color-text-secondary);">${v.created_by}</td>
+          <td style="color: var(--color-text-secondary);">${escapeHtml(v.created_by)}</td>
         </tr>
       `;
     });
@@ -65,6 +56,6 @@ export async function showSecretVersionsModal(vault_id: string, secret: Secret) 
     body.innerHTML = html;
 
   } catch (err: any) {
-    body.innerHTML = '<p style="color: var(--color-danger); text-align: center;">Erro ao carregar versões.</p>';
+    body.innerHTML = '<p style="color: var(--color-error); text-align: center;">Erro ao carregar versões.</p>';
   }
 }

@@ -2,58 +2,58 @@ import type { Vault } from '../types';
 import { createVault, updateVault } from '../api/vaults';
 import { showToast } from './toast';
 import { render } from '../views/dashboard';
+import { openModal, escapeHtml } from './modal';
 
 export function showEditVaultModal(vault?: Vault): void {
-  const overlay = document.getElementById('modal-overlay');
-  if (!overlay) return;
-  
-  overlay.innerHTML = '';
-  
-  const card = document.createElement('div');
-  card.className = 'card';
-  card.style.maxWidth = '400px';
-  card.style.width = '100%';
-  
-  const title = vault ? 'Editar Cofre' : 'Novo Cofre';
-  const btnText = vault ? 'Salvar' : 'Criar';
-  
-  card.innerHTML = `
-    <h3 style="margin-bottom: var(--space-md);">${title}</h3>
-    <form id="vault-form">
-      <div class="form-group">
-        <label class="form-label" for="vault-name">Nome do Cofre</label>
-        <input type="text" id="vault-name" class="form-input" required value="${vault?.name || ''}" placeholder="Ex: Produção" />
-      </div>
-      <div style="display: flex; justify-content: flex-end; gap: var(--space-sm); margin-top: var(--space-xl);">
-        <button type="button" class="btn btn--ghost" id="vault-cancel">Cancelar</button>
-        <button type="submit" class="btn btn--primary" id="vault-submit">${btnText}</button>
-      </div>
-    </form>
+  const isEdit = Boolean(vault);
+
+  const { body, close } = openModal({
+    title: isEdit ? 'Editar Cofre' : 'Novo Cofre',
+    subtitle: isEdit
+      ? 'Atualize o nome do cofre.'
+      : 'Crie um cofre para organizar os segredos da equipe.',
+    iconName: isEdit ? 'pencil' : 'database',
+    size: 'sm',
+    bodyHTML: `
+      <form id="vault-form" novalidate>
+        <div class="input-group">
+          <label class="input-label" for="vault-name">Nome do Cofre</label>
+          <input type="text" id="vault-name" class="input-field" required maxlength="255"
+                 value="${escapeHtml(vault?.name || '')}"
+                 placeholder="Ex: Produção" autocomplete="off" spellcheck="false" />
+        </div>
+      </form>
+    `,
+  });
+
+  const modalEl = body.closest('.modal') as HTMLElement;
+  const footer = document.createElement('div');
+  footer.className = 'modal-footer';
+  const btnText = isEdit ? 'Salvar Alterações' : 'Criar Cofre';
+  footer.innerHTML = `
+    <button type="button" class="btn btn--ghost" id="vault-cancel">Cancelar</button>
+    <button type="submit" form="vault-form" class="btn btn--primary" id="vault-submit">${btnText}</button>
   `;
-  
-  overlay.appendChild(card);
-  overlay.classList.add('active');
-  
-  const close = () => {
-    overlay.classList.remove('active');
-    overlay.innerHTML = '';
-  };
-  
-  card.querySelector('#vault-cancel')?.addEventListener('click', close);
-  
-  const form = card.querySelector('#vault-form') as HTMLFormElement;
+  modalEl.appendChild(footer);
+
+  body.querySelector('#vault-cancel')?.addEventListener('click', close);
+
+  const form = body.querySelector('#vault-form') as HTMLFormElement;
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const input = card.querySelector('#vault-name') as HTMLInputElement;
+    const input = body.querySelector('#vault-name') as HTMLInputElement;
     const name = input.value.trim();
-    if (!name) return;
-    
-    const submitBtn = card.querySelector('#vault-submit') as HTMLButtonElement;
+    if (!name) {
+      showToast('Informe um nome para o cofre.', 'error');
+      return;
+    }
+
+    const submitBtn = modalEl.querySelector('#vault-submit') as HTMLButtonElement;
+    submitBtn.classList.add('btn--loading');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Aguarde...';
-    
+
     try {
-      if (vault) {
+      if (isEdit && vault) {
         await updateVault(vault.id, name);
         showToast('Cofre atualizado com sucesso!', 'success');
       } else {
@@ -64,8 +64,8 @@ export function showEditVaultModal(vault?: Vault): void {
       render();
     } catch (error: any) {
       showToast(error.message || 'Erro ao salvar cofre.', 'error');
+      submitBtn.classList.remove('btn--loading');
       submitBtn.disabled = false;
-      submitBtn.textContent = btnText;
     }
   });
 }

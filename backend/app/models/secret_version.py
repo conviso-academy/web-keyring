@@ -28,6 +28,6 @@ class SecretVersion(Base):
     creator: Mapped["User"] = relationship()
 
     __table_args__ = (
-        UniqueConstraint("secret_id", "version_number", name="uq_secret_version"),
+        UniqueConstraint("secret_id", "version_number", name="uq_secret_versions_secret_id_version"),
         Index("ix_secret_versions_secret_id_version", "secret_id", "version_number"),
     )

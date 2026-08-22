@@ -1,5 +1,6 @@
 import type { AuditEntry } from '../types';
 import { renderActionBadge } from './badge';
+import { escapeHtml } from './modal';
 
 export function renderAuditRow(entry: AuditEntry): string {
   const date = new Date(entry.timestamp);
@@ -7,17 +8,17 @@ export function renderAuditRow(entry: AuditEntry): string {
   
   let targetHtml = '-';
   if (entry.secret_name && entry.vault_name) {
-    targetHtml = `${entry.secret_name} <span style="color: var(--color-text-muted); font-size: 0.8em;">em ${entry.vault_name}</span>`;
+    targetHtml = `${escapeHtml(entry.secret_name)} <span style="color: var(--color-text-muted); font-size: 0.8em;">em ${escapeHtml(entry.vault_name)}</span>`;
   } else if (entry.vault_name) {
-    targetHtml = `${entry.vault_name} <span style="color: var(--color-text-muted); font-size: 0.8em;">(Cofre)</span>`;
+    targetHtml = `${escapeHtml(entry.vault_name)} <span style="color: var(--color-text-muted); font-size: 0.8em;">(Cofre)</span>`;
   } else if (entry.secret_name) {
-    targetHtml = `${entry.secret_name}`; // Fallback
+    targetHtml = `${escapeHtml(entry.secret_name)}`; // Fallback
   }
 
   return `
     <tr class="table-row">
       <td class="table-cell" style="color: var(--color-text-secondary); white-space: nowrap;">${formattedDate}</td>
-      <td class="table-cell" style="font-weight: 500;">${entry.user_email}</td>
+      <td class="table-cell" style="font-weight: 500;">${escapeHtml(entry.user_email)}</td>
       <td class="table-cell">${renderActionBadge(entry.action)}</td>
       <td class="table-cell">${targetHtml}</td>
     </tr>

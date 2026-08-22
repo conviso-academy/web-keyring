@@ -6,6 +6,7 @@ import { renderAuditTable } from '../components/auditTable';
 import { renderPagination } from '../components/pagination';
 import { renderEmptyState } from '../components/emptyState';
 import { renderSkeleton } from '../components/spinner';
+import { escapeHtml } from '../components/modal';
 
 export async function render(): Promise<void> {
   ensureAppLayout();
@@ -58,7 +59,7 @@ async function renderFiltersAndTable(container: HTMLElement) {
         <label class="input-label" for="filter-vault">Filtrar por Cofre</label>
         <select id="filter-vault" class="input-field">
           <option value="">Todos os Cofres</option>
-          ${state.vaults.map(v => `<option value="${v.id}" ${state.auditFilterVaultId === v.id ? 'selected' : ''}>${v.name}</option>`).join('')}
+          ${state.vaults.map(v => `<option value="${v.id}" ${state.auditFilterVaultId === v.id ? 'selected' : ''}>${escapeHtml(v.name)}</option>`).join('')}
         </select>
       </div>
       <div class="input-group" style="margin-bottom: 0; min-width: 200px; flex: 1;">

@@ -10,6 +10,7 @@ import { renderPagination } from './pagination';
 import { showCreateSecretModal } from './createSecretModal';
 import { showEditSecretModal } from './editSecretModal';
 import { showSecretVersionsModal } from './secretVersions';
+import { escapeHtml } from './modal';
 
 export async function renderSecretsView(container: HTMLElement, page: number = 1) {
   const vault = state.selectedVault!;
@@ -37,7 +38,7 @@ export async function renderSecretsView(container: HTMLElement, page: number = 1
 
   let html = `
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-lg);">
-      <h2>${vault.name} <span style="color: var(--color-text-secondary); font-size: 1rem; font-weight: normal;">— Segredos</span></h2>
+      <h2>${escapeHtml(vault.name)} <span style="color: var(--color-text-secondary); font-size: 1rem; font-weight: normal;">— Segredos</span></h2>
       <button class="btn btn--primary" id="btn-new-secret">
         ${icon('plus', 'sm').outerHTML} Novo Segredo
       </button>

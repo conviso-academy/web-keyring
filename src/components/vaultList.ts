@@ -1,4 +1,5 @@
 import { icon } from '../icons';
+import { escapeHtml } from './modal';
 import type { Vault } from '../types';
 
 export function renderVaultRow(vault: Vault): string {
@@ -8,7 +9,7 @@ export function renderVaultRow(vault: Vault): string {
       <td class="table-cell">
         <div class="flex items-center gap-sm">
           ${icon('lock', 'sm').outerHTML}
-          <span style="font-weight: 500;">${vault.name}</span>
+          <span style="font-weight: 500;">${escapeHtml(vault.name)}</span>
         </div>
       </td>
       <td class="table-cell">${vault.secrets_count}</td>

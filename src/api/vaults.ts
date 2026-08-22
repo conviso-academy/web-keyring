@@ -1,23 +1,44 @@
-import { mockDelay } from './client';
+import { apiRequest, mockDelay } from './client';
 import { mockVaults, mockSecrets, mockSecretValues, mockAuditLog } from './mock-data';
-import type { Vault, Secret } from '../types';
+import type { Vault, Secret, PaginatedResponse } from '../types';
 
-export async function getVaults(): Promise<Vault[]> {
-  await mockDelay();
-  return [...mockVaults];
+export async function getVaults(page: number = 1, page_size: number = 20): Promise<PaginatedResponse<Vault>> {
+  return apiRequest<PaginatedResponse<Vault>>({
+    method: 'GET',
+    endpoint: '/api/vaults',
+    queryParams: { page, page_size }
+  });
 }
 
 export async function createVault(name: string): Promise<Vault> {
-  await mockDelay();
-  const newVault: Vault = {
-    id: `v-${Date.now()}`,
-    name,
-    secrets_count: 0,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
-  mockVaults.push(newVault);
-  return newVault;
+  return apiRequest<Vault>({
+    method: 'POST',
+    endpoint: '/api/vaults',
+    body: { name }
+  });
+}
+
+export async function getVault(vault_id: string): Promise<Vault> {
+  return apiRequest<Vault>({
+    method: 'GET',
+    endpoint: `/api/vaults/${vault_id}`
+  });
+}
+
+export async function updateVault(vault_id: string, name: string): Promise<Vault> {
+  return apiRequest<Vault>({
+    method: 'PUT',
+    endpoint: `/api/vaults/${vault_id}`,
+    body: { name }
+  });
+}
+
+export async function deleteVault(vault_id: string, confirm: boolean = false): Promise<void> {
+  return apiRequest<void>({
+    method: 'DELETE',
+    endpoint: `/api/vaults/${vault_id}`,
+    queryParams: confirm ? { confirm: true } : undefined
+  });
 }
 
 export async function getSecrets(vaultId: string): Promise<Secret[]> {

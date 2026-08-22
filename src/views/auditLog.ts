@@ -22,7 +22,8 @@ export async function render(): Promise<void> {
 
   // Pre-load vaults for filter if needed
   if (state.vaults.length === 0) {
-    state.vaults = await getVaults();
+    const vaultsResp = await getVaults();
+    state.vaults = vaultsResp.items;
   }
 
   renderFiltersAndTable(content);

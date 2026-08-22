@@ -57,15 +57,16 @@ export function render(): void {
     
     try {
       const response = await login(email, password);
-      if (response.requires_2fa_setup) {
+      if ('session_token' in response) {
         state.tempSessionToken = response.session_token;
-        navigate('2fa_setup');
-      } else if (response.requires_2fa) {
-        state.tempSessionToken = response.session_token;
-        navigate('2fa_verify');
-      } else {
+        if (response.requires_2fa_setup) {
+          navigate('2fa_setup');
+        } else if (response.requires_2fa) {
+          navigate('2fa_verify');
+        }
+      } else if ('user' in response) {
         state.isAuthenticated = true;
-        if (response.user) state.currentUser = response.user;
+        state.currentUser = response.user;
         navigate('dashboard');
       }
     } catch (error: any) {

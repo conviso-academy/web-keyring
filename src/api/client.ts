@@ -54,8 +54,8 @@ export async function apiRequest<T>({
     method,
     credentials: 'include',
     signal: controller.signal,
+    cache: 'no-cache',
     headers: {
-      'Cache-Control': 'no-cache',
       ...headers
     }
   };
@@ -83,13 +83,18 @@ export async function apiRequest<T>({
       const message = errorData.message || errorData.error || `HTTP Error ${response.status}`;
 
       if (response.status === 401) {
-        state.isAuthenticated = false;
-        state.currentUser = null;
-        state.tempSessionToken = null;
-        state.revealedSecretValue = null;
-        state.twoFaSetupData = null;
-        navigate('login');
-        showToast('Session expired or unauthorized. Please log in again.', 'error');
+        // Não redirecionar nem limpar estado se for uma rota de autenticação (login, 2fa, etc)
+        // Nesses casos, o 401 significa apenas credencial/código inválido e a UI lidará com isso.
+        const isAuthEndpoint = endpoint.startsWith('/api/auth/login') || endpoint.includes('/2fa/');
+        if (!isAuthEndpoint) {
+          state.isAuthenticated = false;
+          state.currentUser = null;
+          state.tempSessionToken = null;
+          state.revealedSecretValue = null;
+          state.twoFaSetupData = null;
+          navigate('login');
+          showToast('Sessão expirada ou não autorizada. Faça login novamente.', 'error');
+        }
         throw new AuthenticationError(message);
       } else if (response.status === 400) {
         throw new ValidationError(message);

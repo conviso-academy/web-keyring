@@ -3,74 +3,7 @@ import { navigate } from '../router';
 import { setup2FA, verifySetup2FA } from '../api/auth';
 import { showToast } from '../components/toast';
 import { icon } from '../icons';
-
-// Função auxiliar para renderizar um QR code SVG estilizado para o mock
-function renderQrCodeSvg(): string {
-  // Matriz visual estilizada simulando um QR Code com os 3 marcadores de posição clássicos
-  return `
-    <svg viewBox="0 0 160 160" width="140" height="140" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block; margin: 0 auto; shape-rendering: crispEdges;">
-      <rect width="160" height="160" fill="#FFFFFF"/>
-      
-      <!-- Top-Left Finder Pattern -->
-      <rect x="10" y="10" width="40" height="40" fill="#1B2A4A"/>
-      <rect x="16" y="16" width="28" height="28" fill="#FFFFFF"/>
-      <rect x="22" y="22" width="16" height="16" fill="#1B2A4A"/>
-      
-      <!-- Top-Right Finder Pattern -->
-      <rect x="110" y="10" width="40" height="40" fill="#1B2A4A"/>
-      <rect x="116" y="16" width="28" height="28" fill="#FFFFFF"/>
-      <rect x="122" y="22" width="16" height="16" fill="#1B2A4A"/>
-      
-      <!-- Bottom-Left Finder Pattern -->
-      <rect x="10" y="110" width="40" height="40" fill="#1B2A4A"/>
-      <rect x="16" y="116" width="28" height="28" fill="#FFFFFF"/>
-      <rect x="22" y="122" width="16" height="16" fill="#1B2A4A"/>
-      
-      <!-- Alignment & Timing Mock Modules -->
-      <rect x="56" y="14" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="68" y="14" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="80" y="14" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="92" y="14" width="6" height="6" fill="#1B2A4A"/>
-      
-      <rect x="14" y="56" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="14" y="68" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="14" y="80" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="14" y="92" width="6" height="6" fill="#1B2A4A"/>
-
-      <!-- Inner Data Pixels -->
-      <rect x="60" y="60" width="12" height="12" fill="#E5A100" rx="2"/>
-      <rect x="88" y="60" width="12" height="12" fill="#1B2A4A"/>
-      <rect x="60" y="88" width="12" height="12" fill="#1B2A4A"/>
-      <rect x="88" y="88" width="12" height="12" fill="#E5A100" rx="2"/>
-
-      <rect x="36" y="60" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="44" y="72" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="26" y="84" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="40" y="94" width="6" height="6" fill="#1B2A4A"/>
-
-      <rect x="64" y="34" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="76" y="44" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="88" y="30" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="100" y="44" width="6" height="6" fill="#1B2A4A"/>
-
-      <rect x="114" y="60" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="130" y="70" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="120" y="84" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="140" y="96" width="6" height="6" fill="#1B2A4A"/>
-
-      <rect x="60" y="114" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="74" y="126" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="66" y="140" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="86" y="118" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="98" y="134" width="6" height="6" fill="#1B2A4A"/>
-      
-      <rect x="114" y="114" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="130" y="120" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="120" y="136" width="6" height="6" fill="#1B2A4A"/>
-      <rect x="140" y="142" width="6" height="6" fill="#1B2A4A"/>
-    </svg>
-  `;
-}
+import QRCode from 'qrcode';
 
 export async function render(): Promise<void> {
   const app = document.getElementById('app')!;
@@ -119,7 +52,7 @@ export async function render(): Promise<void> {
     if (loadingState) loadingState.style.display = 'none';
     if (contentState) {
       contentState.style.display = 'block';
-      renderSetupContent(contentState, data.backup_codes, data.provisioning_uri);
+      await renderSetupContent(contentState, data.backup_codes, data.provisioning_uri);
     }
   } catch (err: any) {
     showToast(err.message || 'Erro ao carregar dados de configuração do 2FA', 'error');
@@ -127,14 +60,14 @@ export async function render(): Promise<void> {
   }
 }
 
-function renderSetupContent(
+async function renderSetupContent(
   container: HTMLElement,
   backupCodes: string[],
   provisioningUri: string
-): void {
-  // Extrair chave manual do URI caso útil (ex: secret=...)
+): Promise<void> {
+  // Extrair chave manual do URI
   const secretMatch = provisioningUri.match(/secret=([^&]+)/);
-  const secretKey = secretMatch ? secretMatch[1] : 'JBSWY3DPEHPK3PXP';
+  const secretKey = secretMatch ? secretMatch[1] : 'ERRO_DE_CHAVE';
 
   container.innerHTML = `
     <!-- Passo 1: QR Code -->
@@ -148,8 +81,8 @@ function renderSetupContent(
       </p>
       
       <div class="twofa-qr-box">
-        <div class="twofa-qr-code">
-          ${renderQrCodeSvg()}
+        <div class="twofa-qr-code" style="display: flex; justify-content: center;">
+          <canvas id="qrcode-canvas" width="160" height="160"></canvas>
         </div>
         <div class="twofa-secret-container">
           <span style="font-size: 0.75rem; color: var(--color-text-secondary);">Chave de configuração manual:</span>
@@ -223,6 +156,19 @@ function renderSetupContent(
   `;
 
   // Handlers
+  const canvas = document.getElementById('qrcode-canvas');
+  if (canvas) {
+    try {
+      await QRCode.toCanvas(canvas, provisioningUri, { 
+        width: 160, 
+        margin: 1, 
+        color: { dark: '#1B2A4A', light: '#FFFFFF' } 
+      });
+    } catch (e) {
+      console.error('Failed to render QR Code', e);
+    }
+  }
+
   const btnCopyCodes = document.getElementById('btn-copy-codes');
   btnCopyCodes?.addEventListener('click', async () => {
     const textToCopy = `OVNI - Códigos de Backup 2FA:\n\n${backupCodes.join('\n')}\n\nGuarde em local seguro.`;

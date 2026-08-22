@@ -9,9 +9,9 @@ export const mockUsers: User[] = [
 ];
 
 export const mockVaults: Vault[] = [
-  { id: 'v-1', owner_id: 'u-1', name: 'Produção', secrets_count: 12, updated_at: '2026-08-13T10:00:00Z' },
-  { id: 'v-2', owner_id: 'u-1', name: 'Staging', secrets_count: 5, updated_at: '2026-08-10T14:30:00Z' },
-  { id: 'v-3', owner_id: 'u-1', name: 'Desenvolvimento', secrets_count: 8, updated_at: '2026-08-08T09:15:00Z' }
+  { id: 'v-1', name: 'Produção', secrets_count: 12, created_at: '2026-08-01T00:00:00Z', updated_at: '2026-08-13T10:00:00Z' },
+  { id: 'v-2', name: 'Staging', secrets_count: 5, created_at: '2026-08-01T00:00:00Z', updated_at: '2026-08-10T14:30:00Z' },
+  { id: 'v-3', name: 'Desenvolvimento', secrets_count: 8, created_at: '2026-08-01T00:00:00Z', updated_at: '2026-08-08T09:15:00Z' }
 ];
 
 export const mockSecrets: Secret[] = [
@@ -37,8 +37,8 @@ export const mockSecretValues: Record<string, string> = {
 };
 
 export const mockAuditLog: AuditEntry[] = [
-  { id: 'a-1', secret_id: 's-1', user_id: 'u-1', user_email: 'admin@conviso.com', action: 'read', secret_name: 'AWS Production Key', vault_name: 'Produção', timestamp: '2026-08-13T14:30:00Z', ip_address: '192.168.1.1' },
-  { id: 'a-2', secret_id: 's-1', user_id: 'u-1', user_email: 'admin@conviso.com', action: 'update', secret_name: 'AWS Production Key', vault_name: 'Produção', timestamp: '2026-08-13T10:00:00Z', ip_address: '192.168.1.1' },
-  { id: 'a-3', secret_id: 's-5', user_id: 'u-1', user_email: 'admin@conviso.com', action: 'update', secret_name: 'Staging API Key', vault_name: 'Staging', timestamp: '2026-08-10T14:30:00Z', ip_address: '192.168.1.1' },
-  { id: 'a-4', secret_id: 's-7', user_id: 'u-1', user_email: 'admin@conviso.com', action: 'create', secret_name: 'Local Testing Key', vault_name: 'Desenvolvimento', timestamp: '2026-08-06T00:00:00Z', ip_address: '192.168.1.1' },
+  { id: 'a-1', secret_id: 's-1', vault_id: 'v-1', user_email: 'admin@conviso.com', action: 'read', secret_name: 'AWS Production Key', vault_name: 'Produção', timestamp: '2026-08-13T14:30:00Z', ip_address: '192.168.1.1' },
+  { id: 'a-2', secret_id: 's-1', vault_id: 'v-1', user_email: 'admin@conviso.com', action: 'update', secret_name: 'AWS Production Key', vault_name: 'Produção', timestamp: '2026-08-13T10:00:00Z', ip_address: '192.168.1.1' },
+  { id: 'a-3', secret_id: 's-5', vault_id: 'v-2', user_email: 'admin@conviso.com', action: 'update', secret_name: 'Staging API Key', vault_name: 'Staging', timestamp: '2026-08-10T14:30:00Z', ip_address: '192.168.1.1' },
+  { id: 'a-4', secret_id: 's-7', vault_id: 'v-3', user_email: 'admin@conviso.com', action: 'create', secret_name: 'Local Testing Key', vault_name: 'Desenvolvimento', timestamp: '2026-08-06T00:00:00Z', ip_address: '192.168.1.1' },
 ];

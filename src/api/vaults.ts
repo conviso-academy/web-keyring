@@ -11,9 +11,9 @@ export async function createVault(name: string): Promise<Vault> {
   await mockDelay();
   const newVault: Vault = {
     id: `v-${Date.now()}`,
-    owner_id: 'u-1',
     name,
     secrets_count: 0,
+    created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
   mockVaults.push(newVault);
@@ -37,7 +37,7 @@ export async function revealSecret(id: string): Promise<{ value: string }> {
     mockAuditLog.unshift({
       id: `a-${Date.now()}`,
       secret_id: id,
-      user_id: 'u-1',
+      vault_id: vault?.id || null,
       user_email: 'admin@conviso.com',
       action: 'read',
       secret_name: secret.name,

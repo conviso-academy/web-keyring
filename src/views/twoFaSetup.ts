@@ -110,8 +110,8 @@ export async function render(): Promise<void> {
   try {
     const data = await setup2FA(state.tempSessionToken);
     state.twoFaSetupData = {
-      provisioningUri: data.provisioning_uri,
-      backupCodes: data.backup_codes
+      provisioning_uri: data.provisioning_uri,
+      backup_codes: data.backup_codes
     };
 
     const loadingState = document.getElementById('setup-loading-state');

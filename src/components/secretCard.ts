@@ -4,7 +4,7 @@ import { renderSecretTypeBadge } from './badge';
 import { state } from '../state';
 
 export function renderSecretRow(secret: Secret): string {
-  const date = new Date(secret.updated_at).toLocaleDateString('pt-BR');
+  const date = secret.updated_at ? new Date(secret.updated_at).toLocaleDateString('pt-BR') : 'N/A';
   const isExpanded = state.expandedSecretId === secret.id;
   
   return `

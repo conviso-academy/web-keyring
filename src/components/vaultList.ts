@@ -2,7 +2,7 @@ import { icon } from '../icons';
 import type { Vault } from '../types';
 
 export function renderVaultRow(vault: Vault): string {
-  const date = new Date(vault.updated_at).toLocaleDateString('pt-BR');
+  const date = vault.updated_at ? new Date(vault.updated_at).toLocaleDateString('pt-BR') : 'N/A';
   return `
     <tr class="table-row" style="cursor: pointer;" data-vault-id="${vault.id}">
       <td class="table-cell">

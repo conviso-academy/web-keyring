@@ -45,7 +45,5 @@ jobs:
 
       - name: Executar Security Gate
         run: |
-          cvs security-gate \
-            --asset-id 80146 \
-            --company-id 908 \
-            --rules-file security-gate.yml
+          conviso vulnerability assert-security-rules \
+          --output gate-result.json

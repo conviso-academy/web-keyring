@@ -2,11 +2,9 @@ name: Conviso AST & Security Gate
 
 on:
   workflow_dispatch:
-
   push:
     branches:
       - main
-
   pull_request:
     branches:
       - main
@@ -15,31 +13,17 @@ jobs:
   conviso-security:
     name: Conviso AST & Security Gate
     runs-on: ubuntu-latest
-
     container:
       image: convisoappsec/convisoast:latest
-
     env:
       CONVISO_API_KEY: ${{ secrets.CONVISO_API_KEY }}
 
     steps:
-      # ---------------------------------------------------------
-      # 1. Checkout do repositório
-      # ---------------------------------------------------------
       - name: Checkout do repositorio
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # ---------------------------------------------------------
-      # 2. Criação das regras do Security Gate
-      #
-      # A pipeline deve bloquear quando existir:
-      # - 1 ou mais vulnerabilidades Critical
-      # - 1 ou mais vulnerabilidades High
-      #
-      # Vulnerabilidades Medium e Low são permitidas.
-      # ---------------------------------------------------------
       - name: Criar regras do Security Gate
         run: |
           cat <<'EOF' > security-gate.yml
@@ -52,27 +36,16 @@ jobs:
                   maximum: 0
           EOF
 
-          echo "Arquivo security-gate.yml criado:"
-          cat security-gate.yml
-
-     # ---------------------------------------------------------
-      # 3. Execução do Conviso AST
-      # ---------------------------------------------------------
       - name: Executar Conviso AST
         run: |
           conviso ast run \
             --vulnerability-auto-close \
             --company-id 908 \
-            --asset-id 80146 \
-            --tag-version 3.2.2
+            --asset-id 80146
 
-      # ---------------------------------------------------------
-      # 4. Security Gate
-      # ---------------------------------------------------------
       - name: Executar Security Gate
         run: |
           cvs security-gate \
             --asset-id 80146 \
             --company-id 908 \
-            --rules-file security-gate.yml \
-            --tag-version 3.2.2
+            --rules-file security-gate.yml

@@ -55,35 +55,24 @@ jobs:
           echo "Arquivo security-gate.yml criado:"
           cat security-gate.yml
 
-      # ---------------------------------------------------------
+     # ---------------------------------------------------------
       # 3. Execução do Conviso AST
-      #
-      # Company ID: 908
-      # Asset ID: 80146
-      #
-      # Os resultados encontrados são enviados para a
-      # Conviso Platform.
       # ---------------------------------------------------------
       - name: Executar Conviso AST
         run: |
           conviso ast run \
             --vulnerability-auto-close \
             --company-id 908 \
-            --asset-id 80146
+            --asset-id 80146 \
+            --tag-version 3.2.2
 
       # ---------------------------------------------------------
       # 4. Security Gate
-      #
-      # Verifica as vulnerabilidades existentes no Asset.
-      #
-      # High > 0     -> pipeline bloqueada
-      # Critical > 0 -> pipeline bloqueada
-      #
-      # Medium/Low não bloqueiam.
       # ---------------------------------------------------------
       - name: Executar Security Gate
         run: |
           cvs security-gate \
             --asset-id 80146 \
             --company-id 908 \
-            --rules-file security-gate.yml
+            --rules-file security-gate.yml \
+            --tag-version 3.2.2

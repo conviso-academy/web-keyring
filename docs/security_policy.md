@@ -1,7 +1,7 @@
 # Política de Segurança da Aplicação
 
 **Projeto:** Web-Keyring (Gerenciador de Secrets Web)
-**Controle de versão:** 1.0
+**Controle de versão:** 1.1
 **Autoria:** José Renato, Paloma e Rodrigo
 **Data:** 15 Agosto de 2026
 
@@ -76,12 +76,11 @@ No caso do Web-Keyring, o usuário final terá uma senha-mestra que cumpra deter
 - **6.1** A autenticação será realizada do lado do servidor, por meio de cookies de sessão.
 - **6.2** Os cookies de sessão deverão utilizar, obrigatoriamente, os atributos `HttpOnly`, `Secure` e `SameSite`, conforme a necessidade da aplicação.
 - **6.3** Os identificadores de sessão não deverão ser armazenados em `localStorage` ou `sessionStorage`.
-- **6.4** A aplicação deverá implementar expiração absoluta e expiração por inatividade das sessões.
-- **6.5** O prazo máximo de uma sessão deverá ser de 6 horas, podendo ser inferior conforme o nível de sensibilidade da operação realizada.
-- **6.6** Operações consideradas críticas, como visualização, exportação ou compartilhamento de secrets, poderão exigir nova autenticação ou confirmação da senha-mestra.
-- **6.7** O identificador da sessão deverá ser renovado após eventos relevantes de autenticação ou elevação de privilégio.
-- **6.8** O encerramento da sessão deverá invalidar o identificador correspondente no servidor.
-- **6.9** A aplicação deverá utilizar cabeçalhos de segurança adequados, incluindo mecanismos para impedir o armazenamento em cache de páginas e respostas que contenham secrets ou informações sensíveis.
+- **6.4** O prazo máximo de uma sessão deverá ser de 6 horas, podendo ser inferior conforme o nível de sensibilidade da operação realizada.
+- **6.5** Operações consideradas críticas, como visualização, exportação ou compartilhamento de secrets, poderão exigir nova autenticação ou confirmação da senha-mestra.
+- **6.6** O identificador da sessão deverá ser renovado após eventos relevantes de autenticação ou elevação de privilégio.
+- **6.7** O encerramento da sessão deverá invalidar o identificador correspondente no servidor.
+- **6.8** A aplicação deverá utilizar cabeçalhos de segurança adequados, incluindo mecanismos para impedir o armazenamento em cache de páginas e respostas que contenham secrets ou informações sensíveis.
 
 ---
 

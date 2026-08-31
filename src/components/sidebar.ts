@@ -1,5 +1,6 @@
 import { icon } from '../icons';
 import { navigate } from '../router';
+import { escapeHtml } from './modal';
 import { state } from '../state';
 
 export function renderSidebar(): HTMLElement {
@@ -14,10 +15,6 @@ export function renderSidebar(): HTMLElement {
     </div>
     <nav class="sidebar-nav">
       <a class="sidebar-item ${state.currentView === 'dashboard' ? 'sidebar-item--active' : ''}" data-view="dashboard">
-        ${icon('layoutDashboard').outerHTML}
-        Início
-      </a>
-      <a class="sidebar-item ${state.currentView === 'dashboard' ? 'sidebar-item--active' : ''}" data-view="dashboard">
         ${icon('lock').outerHTML}
         Cofres
       </a>
@@ -29,8 +26,8 @@ export function renderSidebar(): HTMLElement {
     <div class="sidebar-footer">
       <div class="sidebar-item" style="cursor: default;">
         ${icon('user').outerHTML}
-        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${state.currentUser?.email || 'Usuário'}">
-          ${state.currentUser?.email || 'Usuário'}
+        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(state.currentUser?.email || 'Usuário')}">
+          ${escapeHtml(state.currentUser?.email || 'Usuário')}
         </span>
       </div>
       <a class="sidebar-item" id="btn-logout">

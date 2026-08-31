@@ -1,4 +1,5 @@
 import { icon } from '../icons';
+import { escapeHtml } from './modal';
 import { state } from '../state';
 
 export function renderHeader(): HTMLElement {
@@ -6,7 +7,7 @@ export function renderHeader(): HTMLElement {
   header.className = 'top-header';
   header.id = 'top-header';
   
-  const breadcrumbText = state.selectedVault ? `<a href="#" id="breadcrumb-back" style="color: inherit; text-decoration: none;">Cofres</a> <span style="margin: 0 8px;">></span> <span style="color: var(--color-text);">${state.selectedVault.name}</span>` : 
+  const breadcrumbText = state.selectedVault ? `<a href="#" id="breadcrumb-back" style="color: inherit; text-decoration: none;">Cofres</a> <span style="margin: 0 8px;">></span> <span style="color: var(--color-text);">${escapeHtml(state.selectedVault.name)}</span>` : 
                          state.currentView === 'dashboard' ? 'Cofres' : 
                          state.currentView === 'audit' ? 'Trilha de Auditoria' : 'Início';
                          
@@ -21,7 +22,7 @@ export function renderHeader(): HTMLElement {
             <div style="position: absolute; left: 10px; color: var(--color-text-secondary); pointer-events: none;">
               ${icon('search', 'sm').outerHTML}
             </div>
-            <input type="text" id="header-search" class="input-field" placeholder="Buscar cofres..." style="padding-left: 32px;" value="${state.vaultSearchQuery}">
+            <input type="text" id="header-search" class="input-field" placeholder="Buscar cofres..." style="padding-left: 32px;" value="${escapeHtml(state.vaultSearchQuery)}">
           </div>
         </div>
       ` : ''}

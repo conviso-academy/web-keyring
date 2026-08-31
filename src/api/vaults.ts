@@ -1,51 +1,99 @@
-import { mockDelay } from './client';
-import { mockVaults, mockSecrets, mockSecretValues, mockAuditLog } from './mock-data';
-import type { Vault, Secret } from '../types';
+import { apiRequest } from './client';
+import type { Vault, Secret, PaginatedResponse, SecretCreateRequest, SecretUpdateRequest, SecretVersion } from '../types';
 
-export async function getVaults(): Promise<Vault[]> {
-  await mockDelay();
-  return [...mockVaults];
+export async function getVaults(page: number = 1, page_size: number = 20): Promise<PaginatedResponse<Vault>> {
+  return apiRequest<PaginatedResponse<Vault>>({
+    method: 'GET',
+    endpoint: '/api/vaults',
+    queryParams: { page, page_size }
+  });
 }
 
 export async function createVault(name: string): Promise<Vault> {
-  await mockDelay();
-  const newVault: Vault = {
-    id: `v-${Date.now()}`,
-    owner_id: 'u-1',
-    name,
-    secrets_count: 0,
-    updated_at: new Date().toISOString()
-  };
-  mockVaults.push(newVault);
-  return newVault;
+  return apiRequest<Vault>({
+    method: 'POST',
+    endpoint: '/api/vaults',
+    body: { name }
+  });
 }
 
-export async function getSecrets(vaultId: string): Promise<Secret[]> {
-  await mockDelay();
-  return mockSecrets.filter(s => s.vault_id === vaultId);
+export async function getVault(vault_id: string): Promise<Vault> {
+  return apiRequest<Vault>({
+    method: 'GET',
+    endpoint: `/api/vaults/${vault_id}`
+  });
 }
 
-export async function revealSecret(id: string): Promise<{ value: string }> {
-  await mockDelay();
-  const value = mockSecretValues[id];
-  if (!value) throw new Error('Secret not found');
-  
-  // Registrar auditoria
-  const secret = mockSecrets.find(s => s.id === id);
-  if (secret) {
-    const vault = mockVaults.find(v => v.id === secret.vault_id);
-    mockAuditLog.unshift({
-      id: `a-${Date.now()}`,
-      secret_id: id,
-      user_id: 'u-1',
-      user_email: 'admin@conviso.com',
-      action: 'read',
-      secret_name: secret.name,
-      vault_name: vault?.name || '',
-      timestamp: new Date().toISOString(),
-      ip_address: '192.168.1.1'
-    });
-  }
-  
-  return { value };
+export async function updateVault(vault_id: string, name: string): Promise<Vault> {
+  return apiRequest<Vault>({
+    method: 'PUT',
+    endpoint: `/api/vaults/${vault_id}`,
+    body: { name }
+  });
+}
+
+export async function deleteVault(vault_id: string, confirm: boolean = false): Promise<void> {
+  return apiRequest<void>({
+    method: 'DELETE',
+    endpoint: `/api/vaults/${vault_id}`,
+    queryParams: confirm ? { confirm: true } : undefined
+  });
+}
+
+export async function getSecrets(vault_id: string, page: number = 1, page_size: number = 20): Promise<PaginatedResponse<Secret>> {
+  return apiRequest<PaginatedResponse<Secret>>({
+    method: 'GET',
+    endpoint: `/api/vaults/${vault_id}/secrets`,
+    queryParams: { page, page_size }
+  });
+}
+
+export async function createSecret(vault_id: string, request: SecretCreateRequest): Promise<Secret> {
+  return apiRequest<Secret>({
+    method: 'POST',
+    endpoint: `/api/vaults/${vault_id}/secrets`,
+    body: request
+  });
+}
+
+export async function getSecret(vault_id: string, secret_id: string): Promise<Secret> {
+  return apiRequest<Secret>({
+    method: 'GET',
+    endpoint: `/api/vaults/${vault_id}/secrets/${secret_id}`
+  });
+}
+
+export async function updateSecret(vault_id: string, secret_id: string, request: SecretUpdateRequest): Promise<Secret> {
+  return apiRequest<Secret>({
+    method: 'PUT',
+    endpoint: `/api/vaults/${vault_id}/secrets/${secret_id}`,
+    body: request
+  });
+}
+
+export async function deleteSecret(vault_id: string, secret_id: string): Promise<void> {
+  return apiRequest<void>({
+    method: 'DELETE',
+    endpoint: `/api/vaults/${vault_id}/secrets/${secret_id}`
+  });
+}
+
+export async function revealSecret(vault_id: string, secret_id: string): Promise<{ value: string }> {
+  return apiRequest<{ value: string }>({
+    method: 'GET',
+    endpoint: `/api/vaults/${vault_id}/secrets/${secret_id}/reveal`
+  });
+}
+
+export async function getSecretVersions(
+  vault_id: string,
+  secret_id: string,
+  page: number = 1,
+  page_size: number = 20
+): Promise<PaginatedResponse<SecretVersion>> {
+  return apiRequest<PaginatedResponse<SecretVersion>>({
+    method: 'GET',
+    endpoint: `/api/vaults/${vault_id}/secrets/${secret_id}/versions`,
+    queryParams: { page, page_size }
+  });
 }

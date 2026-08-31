@@ -2,14 +2,14 @@ import { icon } from '../icons';
 import type { SecretType, AuditAction } from '../types';
 
 export function renderSecretTypeBadge(type: SecretType): string {
-  let label = 'API Token';
+  let label = 'Token de API';
   let iconName: 'key' | 'database' | 'terminal' = 'key';
-  
+
   if (type === 'db_credential') {
-    label = 'DB Credential';
+    label = 'Credencial de Banco';
     iconName = 'database';
   } else if (type === 'ssh_key') {
-    label = 'SSH Key';
+    label = 'Chave SSH';
     iconName = 'terminal';
   }
   
@@ -21,22 +21,22 @@ export function renderSecretTypeBadge(type: SecretType): string {
 }
 
 export function renderActionBadge(action: AuditAction): string {
-  let label = '';
-  let cls = '';
+  const map: Record<AuditAction, { label: string, cls: string }> = {
+    'create': { label: 'Segredo Criado', cls: 'badge--success' },
+    'read': { label: 'Segredo Lido', cls: 'badge--info' },
+    'update': { label: 'Segredo Editado', cls: 'badge--warning' },
+    'delete': { label: 'Segredo Excluído', cls: 'badge--error' },
+    'login': { label: 'Login', cls: 'badge--neutral' },
+    'login_failed': { label: 'Login Falhou', cls: 'badge--error' },
+    'logout': { label: 'Logout', cls: 'badge--neutral' },
+    'register': { label: 'Cadastro', cls: 'badge--success' },
+    '2fa_setup': { label: '2FA Configurado', cls: 'badge--success' },
+    '2fa_verify_failed': { label: '2FA Falhou', cls: 'badge--error' },
+    'vault_create': { label: 'Cofre Criado', cls: 'badge--success' },
+    'vault_update': { label: 'Cofre Editado', cls: 'badge--warning' },
+    'vault_delete': { label: 'Cofre Excluído', cls: 'badge--error' }
+  };
   
-  if (action === 'create') {
-    label = 'Criação';
-    cls = 'badge--success';
-  } else if (action === 'read') {
-    label = 'Leitura';
-    cls = 'badge--info';
-  } else if (action === 'update') {
-    label = 'Atualização';
-    cls = 'badge--warning';
-  } else if (action === 'delete') {
-    label = 'Exclusão';
-    cls = 'badge--error';
-  }
-  
-  return `<span class="badge ${cls}">${label}</span>`;
+  const config = map[action] || { label: action, cls: 'badge--neutral' };
+  return `<span class="badge ${config.cls}">${config.label}</span>`;
 }
